@@ -73,6 +73,24 @@ curl -u hub:<你的串> -X DELETE \
 
 ## 5. 本地先用假节点把链路跑通（不需要 Cloudflare 账号）
 
+### 5a. 先验 Worker 本身（**这是最值得先做的一步**）
+
+Worker 的代码路径（R2 读写、Basic 鉴权、流式 PUT/GET）可以在本地用 miniflare 完整跑一遍，
+不需要 Cloudflare 账号、不需要建桶：
+
+```bash
+cd worker
+npm install
+echo 'CACHE_TOKEN=hub:workertest' > .dev.vars     # 本地密钥，已在 .gitignore 里
+npx wrangler dev --port 8788 &                    # 本地模式，R2 由 miniflare 模拟
+node test/conformance.mjs http://127.0.0.1:8788 hub:workertest
+```
+
+本仓库实测输出：**13 项断言全部通过**（含"未命中必须精确 404""PUT/GET 字节一致""无凭证 fail closed"）。
+也就是说 `wrangler deploy` 之后会踩到的协议问题，在这一步就已经暴露完了。
+
+### 5b. 再验 Gradle ↔ 缓存节点这条链路
+
 `tools/local-cache-server.mjs` 与 Worker 实现**同一套协议**，可以本地先验：
 
 ```bash
@@ -84,6 +102,8 @@ export MC_HUB_CACHE_USER=hub MC_HUB_CACHE_PASS=local
 export MC_HUB_CACHE_PUSH=true
 tools/bench.sh run s1 s2 s3        # 冷启动填充 → 干净 home 命中
 ```
+
+想看"全绿"的确定性证据，直接跑 `tools/selftest.sh`（22 项断言，含端到端缓存闭环）。
 
 ## 6. 想换掉 Cloudflare？（都走同一套 HTTP 协议）
 
