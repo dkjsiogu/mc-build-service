@@ -8,9 +8,15 @@ plugins {
 group = 'dev.mcbuildhub.fixture'
 version = '1.0.0'
 
-// 三个天然的"可缓存任务"（java 插件自带，且默认 cacheable）：
+// 三个天然的"可缓存任务"（java 插件自带）：
 //   :compileJava → :processResources → :jar
-// 第二次在干净 GRADLE_USER_HOME 里构建时，它们应当全部 FROM-CACHE。
+// 但注意：**只有 :compileJava 默认进缓存**。Gradle 给 Jar / Copy / ProcessResources
+// 都打了 @DisableCachingByDefault(because = "Not worth caching")（见 docs/02 F5）。
+// 下面两行是"显式开缓存"的写法 —— 顺便当成一个可运行的示范：
+// 小工程没必要开（重新打包比走缓存还快），大 jar 工程才值得权衡。
+tasks.withType(Jar).configureEach { outputs.cacheIf { true } }
+tasks.withType(ProcessResources).configureEach { outputs.cacheIf { true } }
+
 tasks.named('jar') {
     manifest {
         attributes('Implementation-Title': 'mc-build-hub-fixture',
@@ -18,12 +24,14 @@ tasks.named('jar') {
     }
 }
 
-// 再加一个自定义可缓存任务：让"命中/未命中"在日志里更显眼
+// 自定义任务默认也不算"可缓存"（Gradle 会说 "would require more information to cache this task"），
+// 必须显式声明 inputs/outputs + cacheIf。这里同样示范一次。
 def stampFile = layout.buildDirectory.file('hub-stamp/stamp.txt')
 tasks.register('hubStamp') {
     def stamp = providers.gradleProperty('fixture.stamp').orElse('v1')
     inputs.property('stamp', stamp)
     outputs.file(stampFile)
+    outputs.cacheIf { true }
     doLast {
         def f = stampFile.get().asFile
         f.parentFile.mkdirs()
@@ -31,3 +39,4 @@ tasks.register('hubStamp') {
     }
 }
 tasks.named('processResources') { dependsOn 'hubStamp' }
+

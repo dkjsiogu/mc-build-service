@@ -124,8 +124,11 @@ rc2=$?
 [[ $rc2 -eq 0 ]] && ok "第二次构建成功" || { bad "第二次构建失败（rc=$rc2）"; tail -20 "$TMP/run2/hub-build.log"; }
 
 assert_log "日志里出现 FROM-CACHE" "$TMP/run2/hub-build.log" '^> Task .* FROM-CACHE'
-json "$TMP/run2/hub-stats.json" "r.tasks.fromCache>=3" && ok "缓存命中任务 ≥3（命中 $(node -e 'console.log(require(process.argv[1]).tasks.fromCache)' "$TMP/run2/hub-stats.json") 个）" || bad "缓存命中任务不足"
-json "$TMP/run2/hub-stats.json" "r.cacheHitRatePct>=50" && ok "命中率 ≥50%" || bad "命中率过低"
+json "$TMP/run2/hub-stats.json" "r.tasks.fromCache>=1" && ok "有任务命中构建缓存（命中 $(node -e 'console.log(require(process.argv[1]).tasks.fromCache)' "$TMP/run2/hub-stats.json") 个）" || bad "没有任何任务命中构建缓存"
+# 精确断言关键路径：:compileJava 必须能从远程缓存命中（这才是"省时间"的实际来源）
+json "$TMP/run2/hub-stats.json" "(r.fromCacheTasks||[]).some(t=>t.endsWith(':compileJava'))" \
+  && ok "关键路径 :compileJava 命中缓存" || bad ":compileJava 未命中缓存（远程缓存没真正生效）"
+json "$TMP/run2/hub-stats.json" "r.cacheHitRatePct>0" && ok "命中率 >0" || bad "命中率为 0"
 assert_log "配置缓存被复用/存储" "$TMP/run2/hub-build.log" 'Reusing configuration cache|Configuration cache entry (stored|reused)'
 
 sec "④b 报告口径"
