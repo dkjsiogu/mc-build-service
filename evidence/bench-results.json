@@ -1,0 +1,1408 @@
+[
+  {
+    "id": "s1",
+    "mode": "readpush",
+    "wallSeconds": 296,
+    "gradleRc": 0,
+    "result": "SUCCESSFUL",
+    "gradleSeconds": 295,
+    "configurationCache": {
+      "status": "stored",
+      "reason": ""
+    },
+    "profile": {
+      "totalMs": 295840,
+      "startupMs": 58635,
+      "settingsMs": 9826,
+      "loadingMs": 159,
+      "configuringMs": 9403,
+      "transformsMs": 0,
+      "executionMs": 39334,
+      "slowestTasks": [
+        {
+          "task": ":neoFormRuntimeDependenciesCompileClasspath",
+          "ms": 77600,
+          "result": ""
+        },
+        {
+          "task": ":createMinecraftArtifacts",
+          "ms": 30962,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeExternalTools",
+          "ms": 15417,
+          "result": ""
+        },
+        {
+          "task": ":compileJava",
+          "ms": 7980,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+          "ms": 5380,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+          "ms": 4788,
+          "result": ""
+        },
+        {
+          "task": ":compileClasspath",
+          "ms": 3993,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeTool",
+          "ms": 1416,
+          "result": ""
+        },
+        {
+          "task": ":parchmentData",
+          "ms": 922,
+          "result": ""
+        },
+        {
+          "task": ":jar",
+          "ms": 218,
+          "result": ""
+        },
+        {
+          "task": ":processResources",
+          "ms": 117,
+          "result": ""
+        },
+        {
+          "task": ":generateModMetadata",
+          "ms": 49,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 8,
+          "result": "NO-SOURCE"
+        },
+        {
+          "task": ":accessTransformers",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":interfaceInjectionData",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":annotationProcessor",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":assemble",
+          "ms": 0,
+          "result": "Did No Work"
+        },
+        {
+          "task": ":classes",
+          "ms": 0,
+          "result": "Did No Work"
+        }
+      ]
+    },
+    "tasks": {
+      "total": 8,
+      "executed": 7,
+      "fromCache": 0,
+      "upToDate": 0,
+      "skipped": 0,
+      "noSource": 1,
+      "failed": 0
+    },
+    "cacheHitRatePct": 0,
+    "fromCacheTasks": [],
+    "slowestTasks": [
+      {
+        "task": ":neoFormRuntimeDependenciesCompileClasspath",
+        "ms": 77600,
+        "result": ""
+      },
+      {
+        "task": ":createMinecraftArtifacts",
+        "ms": 30962,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeExternalTools",
+        "ms": 15417,
+        "result": ""
+      },
+      {
+        "task": ":compileJava",
+        "ms": 7980,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+        "ms": 5380,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+        "ms": 4788,
+        "result": ""
+      },
+      {
+        "task": ":compileClasspath",
+        "ms": 3993,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeTool",
+        "ms": 1416,
+        "result": ""
+      },
+      {
+        "task": ":parchmentData",
+        "ms": 922,
+        "result": ""
+      },
+      {
+        "task": ":jar",
+        "ms": 218,
+        "result": ""
+      },
+      {
+        "task": ":processResources",
+        "ms": 117,
+        "result": ""
+      },
+      {
+        "task": ":generateModMetadata",
+        "ms": 49,
+        "result": ""
+      },
+      {
+        "task": ":jarJar",
+        "ms": 8,
+        "result": "NO-SOURCE"
+      },
+      {
+        "task": ":accessTransformers",
+        "ms": 3,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+        "ms": 3,
+        "result": ""
+      }
+    ],
+    "hub": {
+      "hub": "0.2.0",
+      "gradle": "9.2.0",
+      "java": "21.0.10",
+      "home": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s1",
+      "parallel": "true",
+      "caching": "true",
+      "cc": "true",
+      "workers": "16",
+      "remote": "http://127.0.0.1:8787/cache/",
+      "push": "true"
+    },
+    "remote": {
+      "hits": 0,
+      "misses": 1,
+      "puts": 1,
+      "bytesInMB": 1.9,
+      "bytesOutMB": 0
+    },
+    "gradleUserHome": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s1",
+    "project": "/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft",
+    "log": "/home/dkjsiogu/文档/project/mc-build-service/.bench/logs/s1.log",
+    "notes": "NFRT 产物已播种（=预热包已拉取）；远程缓存为空，本次负责把它填满"
+  },
+  {
+    "id": "s2",
+    "mode": "read",
+    "wallSeconds": 91,
+    "gradleRc": 0,
+    "result": "SUCCESSFUL",
+    "gradleSeconds": 90,
+    "configurationCache": {
+      "status": "stored",
+      "reason": ""
+    },
+    "profile": {
+      "totalMs": 90850,
+      "startupMs": 2125,
+      "settingsMs": 379,
+      "loadingMs": 194,
+      "configuringMs": 678,
+      "transformsMs": 0,
+      "executionMs": 87290,
+      "slowestTasks": [
+        {
+          "task": ":createMinecraftArtifacts",
+          "ms": 85270,
+          "result": ""
+        },
+        {
+          "task": ":compileJava",
+          "ms": 1281,
+          "result": "FROM-CACHE"
+        },
+        {
+          "task": ":jar",
+          "ms": 314,
+          "result": ""
+        },
+        {
+          "task": ":generateModMetadata",
+          "ms": 268,
+          "result": ""
+        },
+        {
+          "task": ":processResources",
+          "ms": 144,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesCompileClasspath",
+          "ms": 48,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+          "ms": 28,
+          "result": ""
+        },
+        {
+          "task": ":compileClasspath",
+          "ms": 13,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 12,
+          "result": "NO-SOURCE"
+        },
+        {
+          "task": ":neoFormRuntimeExternalTools",
+          "ms": 11,
+          "result": ""
+        },
+        {
+          "task": ":parchmentData",
+          "ms": 9,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+          "ms": 8,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeTool",
+          "ms": 4,
+          "result": ""
+        },
+        {
+          "task": ":accessTransformers",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":interfaceInjectionData",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":classes",
+          "ms": 1,
+          "result": "Did No Work"
+        },
+        {
+          "task": ":annotationProcessor",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":assemble",
+          "ms": 0,
+          "result": "Did No Work"
+        }
+      ]
+    },
+    "tasks": {
+      "total": 8,
+      "executed": 6,
+      "fromCache": 1,
+      "upToDate": 0,
+      "skipped": 0,
+      "noSource": 1,
+      "failed": 0
+    },
+    "cacheHitRatePct": 14.3,
+    "fromCacheTasks": [
+      ":compileJava"
+    ],
+    "slowestTasks": [
+      {
+        "task": ":createMinecraftArtifacts",
+        "ms": 85270,
+        "result": ""
+      },
+      {
+        "task": ":compileJava",
+        "ms": 1281,
+        "result": "FROM-CACHE"
+      },
+      {
+        "task": ":jar",
+        "ms": 314,
+        "result": ""
+      },
+      {
+        "task": ":generateModMetadata",
+        "ms": 268,
+        "result": ""
+      },
+      {
+        "task": ":processResources",
+        "ms": 144,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesCompileClasspath",
+        "ms": 48,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+        "ms": 28,
+        "result": ""
+      },
+      {
+        "task": ":compileClasspath",
+        "ms": 13,
+        "result": ""
+      },
+      {
+        "task": ":jarJar",
+        "ms": 12,
+        "result": "NO-SOURCE"
+      },
+      {
+        "task": ":neoFormRuntimeExternalTools",
+        "ms": 11,
+        "result": ""
+      },
+      {
+        "task": ":parchmentData",
+        "ms": 9,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+        "ms": 8,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeTool",
+        "ms": 4,
+        "result": ""
+      },
+      {
+        "task": ":accessTransformers",
+        "ms": 3,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+        "ms": 2,
+        "result": ""
+      }
+    ],
+    "hub": {
+      "hub": "0.2.0",
+      "gradle": "9.2.0",
+      "java": "21.0.10",
+      "home": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s2",
+      "parallel": "true",
+      "caching": "true",
+      "cc": "true",
+      "workers": "16",
+      "remote": "http://127.0.0.1:8787/cache/",
+      "push": "false"
+    },
+    "remote": {
+      "hits": 1,
+      "misses": 0,
+      "puts": 0,
+      "bytesInMB": 0,
+      "bytesOutMB": 1.9
+    },
+    "gradleUserHome": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s2",
+    "project": "/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s2/Arsenal_Graft",
+    "log": "/home/dkjsiogu/文档/project/mc-build-service/.bench/logs/s2.log",
+    "notes": "L1 依赖层已恢复 + L2 远程构建缓存；未还原预热包(L3)；源码未改动"
+  },
+  {
+    "id": "s3",
+    "mode": "read",
+    "wallSeconds": 96.1,
+    "gradleRc": 0,
+    "result": "SUCCESSFUL",
+    "gradleSeconds": 95,
+    "configurationCache": {
+      "status": "stored",
+      "reason": ""
+    },
+    "profile": {
+      "totalMs": 95920,
+      "startupMs": 2731,
+      "settingsMs": 378,
+      "loadingMs": 187,
+      "configuringMs": 687,
+      "transformsMs": 0,
+      "executionMs": 91760,
+      "slowestTasks": [
+        {
+          "task": ":createMinecraftArtifacts",
+          "ms": 85230,
+          "result": ""
+        },
+        {
+          "task": ":compileJava",
+          "ms": 5846,
+          "result": ""
+        },
+        {
+          "task": ":jar",
+          "ms": 290,
+          "result": ""
+        },
+        {
+          "task": ":generateModMetadata",
+          "ms": 252,
+          "result": ""
+        },
+        {
+          "task": ":processResources",
+          "ms": 135,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesCompileClasspath",
+          "ms": 47,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+          "ms": 20,
+          "result": ""
+        },
+        {
+          "task": ":compileClasspath",
+          "ms": 14,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeExternalTools",
+          "ms": 10,
+          "result": ""
+        },
+        {
+          "task": ":parchmentData",
+          "ms": 9,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 9,
+          "result": "NO-SOURCE"
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+          "ms": 6,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeTool",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":accessTransformers",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":annotationProcessor",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":interfaceInjectionData",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":assemble",
+          "ms": 1,
+          "result": "Did No Work"
+        },
+        {
+          "task": ":classes",
+          "ms": 1,
+          "result": "Did No Work"
+        }
+      ]
+    },
+    "tasks": {
+      "total": 8,
+      "executed": 7,
+      "fromCache": 0,
+      "upToDate": 0,
+      "skipped": 0,
+      "noSource": 1,
+      "failed": 0
+    },
+    "cacheHitRatePct": 0,
+    "fromCacheTasks": [],
+    "slowestTasks": [
+      {
+        "task": ":createMinecraftArtifacts",
+        "ms": 85230,
+        "result": ""
+      },
+      {
+        "task": ":compileJava",
+        "ms": 5846,
+        "result": ""
+      },
+      {
+        "task": ":jar",
+        "ms": 290,
+        "result": ""
+      },
+      {
+        "task": ":generateModMetadata",
+        "ms": 252,
+        "result": ""
+      },
+      {
+        "task": ":processResources",
+        "ms": 135,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesCompileClasspath",
+        "ms": 47,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+        "ms": 20,
+        "result": ""
+      },
+      {
+        "task": ":compileClasspath",
+        "ms": 14,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeExternalTools",
+        "ms": 10,
+        "result": ""
+      },
+      {
+        "task": ":parchmentData",
+        "ms": 9,
+        "result": ""
+      },
+      {
+        "task": ":jarJar",
+        "ms": 9,
+        "result": "NO-SOURCE"
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+        "ms": 6,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeTool",
+        "ms": 3,
+        "result": ""
+      },
+      {
+        "task": ":accessTransformers",
+        "ms": 2,
+        "result": ""
+      },
+      {
+        "task": ":annotationProcessor",
+        "ms": 1,
+        "result": ""
+      }
+    ],
+    "hub": {
+      "hub": "0.2.0",
+      "gradle": "9.2.0",
+      "java": "21.0.10",
+      "home": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s3",
+      "parallel": "true",
+      "caching": "true",
+      "cc": "true",
+      "workers": "16",
+      "remote": "http://127.0.0.1:8787/cache/",
+      "push": "false"
+    },
+    "remote": {
+      "hits": 0,
+      "misses": 1,
+      "puts": 0,
+      "bytesInMB": 0,
+      "bytesOutMB": 0
+    },
+    "gradleUserHome": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s3",
+    "project": "/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s3/Arsenal_Graft",
+    "log": "/home/dkjsiogu/文档/project/mc-build-service/.bench/logs/s3.log",
+    "notes": "L1 依赖层已恢复 + L2 远程构建缓存；未还原预热包(L3)；改一行代码"
+  },
+  {
+    "id": "s3b",
+    "mode": "read",
+    "wallSeconds": 96.5,
+    "gradleRc": 0,
+    "result": "SUCCESSFUL",
+    "gradleSeconds": 96,
+    "configurationCache": {
+      "status": "recalculated",
+      "reason": "Gradle user home directory has changed"
+    },
+    "profile": {
+      "totalMs": 96330,
+      "startupMs": 2524,
+      "settingsMs": 368,
+      "loadingMs": 191,
+      "configuringMs": 663,
+      "transformsMs": 0,
+      "executionMs": 92310,
+      "slowestTasks": [
+        {
+          "task": ":createMinecraftArtifacts",
+          "ms": 85950,
+          "result": ""
+        },
+        {
+          "task": ":compileJava",
+          "ms": 5683,
+          "result": ""
+        },
+        {
+          "task": ":jar",
+          "ms": 287,
+          "result": ""
+        },
+        {
+          "task": ":generateModMetadata",
+          "ms": 250,
+          "result": ""
+        },
+        {
+          "task": ":processResources",
+          "ms": 137,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesCompileClasspath",
+          "ms": 55,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+          "ms": 24,
+          "result": ""
+        },
+        {
+          "task": ":compileClasspath",
+          "ms": 16,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeExternalTools",
+          "ms": 10,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 10,
+          "result": "NO-SOURCE"
+        },
+        {
+          "task": ":parchmentData",
+          "ms": 9,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+          "ms": 8,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeTool",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":accessTransformers",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":classes",
+          "ms": 2,
+          "result": "Did No Work"
+        },
+        {
+          "task": ":interfaceInjectionData",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":annotationProcessor",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":assemble",
+          "ms": 0,
+          "result": "Did No Work"
+        }
+      ]
+    },
+    "tasks": {
+      "total": 8,
+      "executed": 7,
+      "fromCache": 0,
+      "upToDate": 0,
+      "skipped": 0,
+      "noSource": 1,
+      "failed": 0
+    },
+    "cacheHitRatePct": 0,
+    "fromCacheTasks": [],
+    "slowestTasks": [
+      {
+        "task": ":createMinecraftArtifacts",
+        "ms": 85950,
+        "result": ""
+      },
+      {
+        "task": ":compileJava",
+        "ms": 5683,
+        "result": ""
+      },
+      {
+        "task": ":jar",
+        "ms": 287,
+        "result": ""
+      },
+      {
+        "task": ":generateModMetadata",
+        "ms": 250,
+        "result": ""
+      },
+      {
+        "task": ":processResources",
+        "ms": 137,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesCompileClasspath",
+        "ms": 55,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+        "ms": 24,
+        "result": ""
+      },
+      {
+        "task": ":compileClasspath",
+        "ms": 16,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeExternalTools",
+        "ms": 10,
+        "result": ""
+      },
+      {
+        "task": ":jarJar",
+        "ms": 10,
+        "result": "NO-SOURCE"
+      },
+      {
+        "task": ":parchmentData",
+        "ms": 9,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+        "ms": 8,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeTool",
+        "ms": 3,
+        "result": ""
+      },
+      {
+        "task": ":accessTransformers",
+        "ms": 2,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+        "ms": 2,
+        "result": ""
+      }
+    ],
+    "hub": {
+      "hub": "0.2.0",
+      "gradle": "9.2.0",
+      "java": "21.0.10",
+      "home": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s3b",
+      "parallel": "true",
+      "caching": "true",
+      "cc": "true",
+      "workers": "16",
+      "remote": "http://127.0.0.1:8787/cache/",
+      "push": "false"
+    },
+    "remote": {
+      "hits": 0,
+      "misses": 1,
+      "puts": 0,
+      "bytesInMB": 0,
+      "bytesOutMB": 0
+    },
+    "gradleUserHome": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s3b",
+    "project": "/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s3b/Arsenal_Graft",
+    "log": "/home/dkjsiogu/文档/project/mc-build-service/.bench/logs/s3b.log",
+    "notes": "L1+L2 基础上再恢复项目 .gradle（验证配置缓存跨 Runner 复用）"
+  },
+  {
+    "id": "s4",
+    "mode": "read",
+    "wallSeconds": 42.4,
+    "gradleRc": 0,
+    "result": "SUCCESSFUL",
+    "gradleSeconds": 42,
+    "configurationCache": {
+      "status": "stored",
+      "reason": ""
+    },
+    "profile": {
+      "totalMs": 42203,
+      "startupMs": 3018,
+      "settingsMs": 370,
+      "loadingMs": 194,
+      "configuringMs": 656,
+      "transformsMs": 0,
+      "executionMs": 37793,
+      "slowestTasks": [
+        {
+          "task": ":createMinecraftArtifacts",
+          "ms": 30267,
+          "result": ""
+        },
+        {
+          "task": ":compileJava",
+          "ms": 6837,
+          "result": ""
+        },
+        {
+          "task": ":jar",
+          "ms": 246,
+          "result": ""
+        },
+        {
+          "task": ":generateModMetadata",
+          "ms": 230,
+          "result": ""
+        },
+        {
+          "task": ":processResources",
+          "ms": 202,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesCompileClasspath",
+          "ms": 50,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+          "ms": 19,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeExternalTools",
+          "ms": 13,
+          "result": ""
+        },
+        {
+          "task": ":compileClasspath",
+          "ms": 11,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 10,
+          "result": "NO-SOURCE"
+        },
+        {
+          "task": ":parchmentData",
+          "ms": 8,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+          "ms": 6,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeTool",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":accessTransformers",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":interfaceInjectionData",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":classes",
+          "ms": 1,
+          "result": "Did No Work"
+        },
+        {
+          "task": ":annotationProcessor",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":assemble",
+          "ms": 0,
+          "result": "Did No Work"
+        }
+      ]
+    },
+    "tasks": {
+      "total": 8,
+      "executed": 7,
+      "fromCache": 0,
+      "upToDate": 0,
+      "skipped": 0,
+      "noSource": 1,
+      "failed": 0
+    },
+    "cacheHitRatePct": 0,
+    "fromCacheTasks": [],
+    "slowestTasks": [
+      {
+        "task": ":createMinecraftArtifacts",
+        "ms": 30267,
+        "result": ""
+      },
+      {
+        "task": ":compileJava",
+        "ms": 6837,
+        "result": ""
+      },
+      {
+        "task": ":jar",
+        "ms": 246,
+        "result": ""
+      },
+      {
+        "task": ":generateModMetadata",
+        "ms": 230,
+        "result": ""
+      },
+      {
+        "task": ":processResources",
+        "ms": 202,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesCompileClasspath",
+        "ms": 50,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+        "ms": 19,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeExternalTools",
+        "ms": 13,
+        "result": ""
+      },
+      {
+        "task": ":compileClasspath",
+        "ms": 11,
+        "result": ""
+      },
+      {
+        "task": ":jarJar",
+        "ms": 10,
+        "result": "NO-SOURCE"
+      },
+      {
+        "task": ":parchmentData",
+        "ms": 8,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+        "ms": 6,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeTool",
+        "ms": 3,
+        "result": ""
+      },
+      {
+        "task": ":accessTransformers",
+        "ms": 2,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+        "ms": 2,
+        "result": ""
+      }
+    ],
+    "hub": {
+      "hub": "0.2.0",
+      "gradle": "9.2.0",
+      "java": "21.0.10",
+      "home": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s4",
+      "parallel": "true",
+      "caching": "true",
+      "cc": "true",
+      "workers": "16",
+      "remote": "http://127.0.0.1:8787/cache/",
+      "push": "false"
+    },
+    "remote": {
+      "hits": 0,
+      "misses": 1,
+      "puts": 0,
+      "bytesInMB": 0,
+      "bytesOutMB": 0
+    },
+    "gradleUserHome": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s4",
+    "project": "/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s4/Arsenal_Graft",
+    "log": "/home/dkjsiogu/文档/project/mc-build-service/.bench/logs/s4.log",
+    "notes": "L1+L3 预热包已还原 + L2 远程构建缓存；改一行代码（黑盒子完整形态）"
+  },
+  {
+    "id": "s0b",
+    "mode": "nohub",
+    "wallSeconds": 42.4,
+    "gradleRc": 0,
+    "result": "SUCCESSFUL",
+    "gradleSeconds": 42,
+    "configurationCache": {
+      "status": "stored",
+      "reason": ""
+    },
+    "profile": {
+      "totalMs": 42243,
+      "startupMs": 2328,
+      "settingsMs": 365,
+      "loadingMs": 188,
+      "configuringMs": 664,
+      "transformsMs": 0,
+      "executionMs": 38541,
+      "slowestTasks": [
+        {
+          "task": ":createMinecraftArtifacts",
+          "ms": 30982,
+          "result": ""
+        },
+        {
+          "task": ":compileJava",
+          "ms": 6953,
+          "result": ""
+        },
+        {
+          "task": ":generateModMetadata",
+          "ms": 240,
+          "result": ""
+        },
+        {
+          "task": ":jar",
+          "ms": 227,
+          "result": ""
+        },
+        {
+          "task": ":processResources",
+          "ms": 128,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesCompileClasspath",
+          "ms": 45,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+          "ms": 20,
+          "result": ""
+        },
+        {
+          "task": ":compileClasspath",
+          "ms": 11,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 11,
+          "result": "NO-SOURCE"
+        },
+        {
+          "task": ":neoFormRuntimeExternalTools",
+          "ms": 9,
+          "result": ""
+        },
+        {
+          "task": ":parchmentData",
+          "ms": 9,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+          "ms": 5,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeTool",
+          "ms": 3,
+          "result": ""
+        },
+        {
+          "task": ":accessTransformers",
+          "ms": 2,
+          "result": ""
+        },
+        {
+          "task": ":interfaceInjectionData",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":neoFormRuntimeDependenciesNeoForgeSources",
+          "ms": 1,
+          "result": ""
+        },
+        {
+          "task": ":annotationProcessor",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":jarJar",
+          "ms": 0,
+          "result": ""
+        },
+        {
+          "task": ":assemble",
+          "ms": 0,
+          "result": "Did No Work"
+        },
+        {
+          "task": ":classes",
+          "ms": 0,
+          "result": "Did No Work"
+        }
+      ]
+    },
+    "tasks": {
+      "total": 8,
+      "executed": 7,
+      "fromCache": 0,
+      "upToDate": 0,
+      "skipped": 0,
+      "noSource": 1,
+      "failed": 0
+    },
+    "cacheHitRatePct": 0,
+    "fromCacheTasks": [],
+    "slowestTasks": [
+      {
+        "task": ":createMinecraftArtifacts",
+        "ms": 30982,
+        "result": ""
+      },
+      {
+        "task": ":compileJava",
+        "ms": 6953,
+        "result": ""
+      },
+      {
+        "task": ":generateModMetadata",
+        "ms": 240,
+        "result": ""
+      },
+      {
+        "task": ":jar",
+        "ms": 227,
+        "result": ""
+      },
+      {
+        "task": ":processResources",
+        "ms": 128,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesCompileClasspath",
+        "ms": 45,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesRuntimeClasspath",
+        "ms": 20,
+        "result": ""
+      },
+      {
+        "task": ":compileClasspath",
+        "ms": 11,
+        "result": ""
+      },
+      {
+        "task": ":jarJar",
+        "ms": 11,
+        "result": "NO-SOURCE"
+      },
+      {
+        "task": ":neoFormRuntimeExternalTools",
+        "ms": 9,
+        "result": ""
+      },
+      {
+        "task": ":parchmentData",
+        "ms": 9,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeDependenciesNeoForgeClasses",
+        "ms": 5,
+        "result": ""
+      },
+      {
+        "task": ":neoFormRuntimeTool",
+        "ms": 3,
+        "result": ""
+      },
+      {
+        "task": ":accessTransformers",
+        "ms": 2,
+        "result": ""
+      },
+      {
+        "task": ":interfaceInjectionData",
+        "ms": 1,
+        "result": ""
+      }
+    ],
+    "hub": {
+      "hub": "0.2.0",
+      "gradle": "9.2.0",
+      "java": "21.0.10",
+      "home": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s0b",
+      "parallel": "true",
+      "caching": "true",
+      "cc": "true",
+      "workers": "16",
+      "remote": "none",
+      "push": "false"
+    },
+    "remote": {
+      "hits": 0,
+      "misses": 0,
+      "puts": 0,
+      "bytesInMB": 0,
+      "bytesOutMB": 0
+    },
+    "gradleUserHome": "/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s0b",
+    "project": "/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s0b/Arsenal_Graft",
+    "log": "/home/dkjsiogu/文档/project/mc-build-service/.bench/logs/s0b.log",
+    "notes": "L1+L3 预热包已还原，但 L2 远程构建缓存关闭 ⇒ 与 s4 的差值就是 L2 的贡献"
+  }
+]

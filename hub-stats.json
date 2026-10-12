@@ -1,0 +1,26 @@
+{
+  "log": "/home/dkjsiogu/文档/project/mc-build-service/hub-build.log",
+  "result": "UNKNOWN",
+  "buildTimeText": "",
+  "buildSeconds": null,
+  "configurationCache": {
+    "status": "unknown",
+    "reason": ""
+  },
+  "hub": {},
+  "tasks": {
+    "total": 0,
+    "executed": 0,
+    "fromCache": 0,
+    "upToDate": 0,
+    "skipped": 0,
+    "noSource": 0,
+    "failed": 0
+  },
+  "cacheHitRatePct": 0,
+  "fromCacheTasks": [],
+  "executedTasks": [],
+  "failedTasks": [],
+  "profile": null,
+  "slowestTasks": []
+}

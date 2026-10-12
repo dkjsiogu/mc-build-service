@@ -34,7 +34,16 @@
 
 ## 30 秒接入
 
-在你的 mod 仓库加 **2 个文件**（拷 `examples/consumer/` 里的），配 **3~4 个 secret**，项目配置零改动：
+> ⚠️ **先看这条**：本仓库目前是**私有**仓库，而 GitHub **不允许**一个私有仓库调用另一个私有仓库的
+> reusable workflow（实测：运行 0 秒失败、jobs 数 0，见 [docs/06-github-notes.md](docs/06-github-notes.md) G1）。
+> 所以现在有两条路，二选一：
+>
+> | 选择 | 消费方要做什么 | 模板 |
+> |---|---|---|
+> | **把黑盒子改成公开仓库**（推荐；里面没有任何密钥） | 两个 YAML + 3 个 secret，**无需 PAT** | [`examples/consumer/`](examples/consumer/) |
+> | **保持私有** | 两个 YAML + 4 个 secret（多一个 `MC_HUB_TOKEN` 读黑盒子） | [`examples/consumer-private-hub/`](examples/consumer-private-hub/) |
+
+在任何一条路上，**mod 项目本身都零改动**（不改 `build.gradle` / `settings.gradle` / `gradle.properties`）：
 
 ```bash
 # 1) 配 secret（仓库 Settings → Secrets and variables → Actions）
@@ -42,14 +51,15 @@ MC_HUB_CACHE_URL    = https://<你的worker>.workers.dev/cache/
 MC_HUB_CACHE_USER   = hub
 MC_HUB_CACHE_PASS   = <你的令牌>
 MC_HUB_CC_KEY       = $(openssl rand -base64 16)     # 配置缓存跨 Runner 复用的开关，强烈建议
+MC_HUB_TOKEN        = <PAT>                          # 仅"黑盒子保持私有"这一条路需要
 
-# 2) 拷两个 workflow
-cp examples/consumer/.github/workflows/build.yml      <你的仓库>/.github/workflows/
-cp examples/consumer/.github/workflows/warm-cache.yml <你的仓库>/.github/workflows/
+# 2) 拷两个 workflow（公开路线用 examples/consumer，私有路线用 examples/consumer-private-hub）
+cp examples/consumer/.github/workflows/{build,warm-cache}.yml <你的仓库>/.github/workflows/
 
-# 3) 先跑一次预热（workflow_dispatch），再正常 push
+# 3) 先跑一次预热（把 NeoForm 产物喂进 R2），再正常 push
 gh workflow run warm-cache.yml && gh workflow run build.yml
 ```
+
 
 细化的接入顺序与排错清单见 **[docs/05-onboarding.md](docs/05-onboarding.md)**。
 
@@ -72,9 +82,32 @@ gh workflow run warm-cache.yml && gh workflow run build.yml
 
 ## 实测数据
 
-<!--BENCH_TABLE-->
+`Arsenal_Graft`（NeoForge 1.21.1 / moddev 2.0.120 / Gradle 9.2.0 / JDK 21，任务 `assemble`）：
 
-方法与口径见 **[docs/04-benchmark.md](docs/04-benchmark.md)**；原始 JSON 与日志见 `evidence/`。
+| 场景 | 墙钟 | 执行段 | 配置缓存 | 远程缓存 |
+|---|---|---|---|---|
+| **黑盒子完整形态**（L1 依赖 + L2 远程缓存 + L3 预热包） | **42.4s** | 37.8s | stored | 0 命中 |
+| 只缺远程构建缓存（L1+L3） | 42.4s | 38.5s | stored | — |
+| 改一行代码、没有预热包（L1+L2） | 96.1s | 91.8s | stored | 0 命中 |
+| 同一次提交重建（L1+L2） | 91.0s | 87.3s | stored | **1 命中** |
+| 真·冷启动（什么都不缓存） | ✗ 失败于反编译（338s 处） | — | — | — |
+
+**三条读数**（细节与边界见 [docs/04-benchmark.md](docs/04-benchmark.md)）：
+
+1. **决定性的 2.3 倍来自 L3 预热包**：最慢任务 `:createMinecraftArtifacts` 从 **85.3s → 30.3s**；
+   剩下的 30.3s 是 NFRT 自身缓存校验的地板。
+2. **远程构建缓存对这个 NeoForge 项目几乎无贡献**，而且是结构性的：
+   `jar`/`processResources` 被 Gradle 标为 "Not worth caching"（`@DisableCachingByDefault`，F5），
+   反混淆任务则写着 `Implements its own caching`（F12）—— 它压根不在 Gradle 构建缓存的管辖范围内。
+3. **"配置阶段 30~60 秒"其实是下载**：预热之后配置段实测只要 **0.4~0.7s**。
+   所以 Configuration Cache 是好习惯，但在冷 Runner 上不是最大杠杆。
+
+**托管 Runner 上的对照证据**：同一套链路在 GitHub `ubuntu-latest` 上自检 **22 项全过**
+（"冷 home 写入 4 个条目 → 另一个干净 home 4 个任务全部 FROM-CACHE，含 `:compileJava`"），
+见 [run 38296806476](https://github.com/dkjsiogu/mc-build-service/actions/runs/38296806476)。
+
+原始 JSON：[`evidence/bench-results.json`](evidence/bench-results.json) ｜ 失败现场：[`evidence/02`](evidence/02-cold-start-failure.md)
+
 
 ---
 
@@ -114,7 +147,8 @@ docs/02-hard-facts.md                 ★ 11 条硬事实（含证据与出处�
 docs/03-r2-setup.md                   R2 + Worker 部署步骤
 docs/04-benchmark.md                  基准方法与结果
 docs/05-onboarding.md                 接入与排错
-evidence/                             实测证据（原始报错、失败现场）
+docs/06-github-notes.md               ★ GitHub 侧实测限制（私有↔私有调用、默认分支、网络口径）
+evidence/                             实测证据（原始报错、失败现场、基准 JSON）
 tests/fixture/                        自检用最小 Gradle 工程
 ```
 
@@ -124,12 +158,13 @@ tests/fixture/                        自检用最小 Gradle 工程
 
 | 部分 | 状态 |
 |---|---|
-| init 脚本（并行/构建缓存强制、远程缓存接线、告警） | ✅ 已在真实 NeoForge 工程上验证 |
-| 可复用构建/预热工作流 | ✅ 语法与结构校验通过，已在 GitHub 上跑通自检 |
-| Worker + R2 缓存节点 | ✅ 协议一致性测试通过（19 项）；**R2 桶与密钥待配置**（`docs/03`） |
-| 自托管缓存节点（无 Cloudflare 也能用） | ✅ 本地端到端验证（冷写入 → 干净 home 命中） |
-| 预热包机制 | ✅ 打包/还原/排除规则验证通过 |
-| 冷/温基准 | ✅ 数据见上（真·冷启动的失败现场见 `evidence/02`） |
+| init 脚本（并行/构建缓存强制、远程缓存接线、预检、告警） | ✅ 已在真实 NeoForge 工程上验证 |
+| 可复用构建/预热工作流 | ✅ actionlint 通过；已在 GitHub `ubuntu-latest` 上跑通自检（22/0） |
+| Worker + R2 缓存节点 | ✅ 协议一致性测试通过；**R2 桶与密钥待配置**（`docs/03`） |
+| 自托管缓存节点（无 Cloudflare 也能用） | ✅ 本地 + GitHub 端到端验证（冷写入 → 干净 home 全部命中） |
+| 预热包机制 | ✅ 打包/还原/排除规则验证通过（实测 1.4G / 22s 打包） |
+| 冷/温基准 | ✅ 6 场景矩阵完成，数据见上；真·冷启动失败现场见 `evidence/02` |
+| **仓库可见性** | ⚠️ 目前私有 ⇒ 消费方需走 `examples/consumer-private-hub/`；改成公开则可用 `uses:` 直连（G1） |
 | R2 凭证 | ⏳ 待你在 Cloudflare 侧建桶后填 secret（"到时候再配置"） |
 
 ## 许可

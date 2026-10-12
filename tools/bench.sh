@@ -92,11 +92,24 @@ fresh_home() {
   echo "$home"
 }
 
-seed_gradle_dist() {  # Runner 上 setup-gradle 会从 GH 缓存恢复发行版，这里如实模拟
+# L1（依赖层）：托管 Runner 上由 setup-gradle 从 GH Actions 缓存恢复的那部分。
+# 刻意**不含** caches/build-cache-1 —— 我们的工作流把它排除掉了（见 reusable-build.yml 的
+# cache-excludes），好让"任务输出复用"由远程缓存（L2）负责，于是 L2 的贡献可以被单独量出来。
+L1_DIRS=(wrapper/dists caches/modules-2 caches/jars-9)
+seed_l1() {
   local home="$1" from="$2"
-  [[ -d "$from/wrapper" ]] || return 0
-  mkdir -p "$home/wrapper"
-  cp -a "$from/wrapper/." "$home/wrapper/" 2>/dev/null || true
+  [[ -d "$from" ]] || { bad "L1 种子源不存在：$from"; return 1; }
+  local copied=()
+  for d in "${L1_DIRS[@]}"; do
+    [[ -e "$from/$d" ]] || continue
+    mkdir -p "$home/$(dirname "$d")"
+    cp -a "$from/$d" "$home/$d" 2>/dev/null && copied+=("$d")
+  done
+  for d in "$from"/caches/[0-9]*; do   # caches/<gradle版本>：生成的 API jar
+    [[ -d "$d" ]] || continue
+    cp -a "$d" "$home/caches/" 2>/dev/null && copied+=("caches/$(basename "$d")")
+  done
+  log "  已播种 L1 依赖层（模拟 setup-gradle 恢复 GH 缓存）：${copied[*]}"
 }
 
 # 播种 NeoForm 产物 = 模拟"预热包已拉取"（跨仓库共享的那 1.2G 就在这儿）
@@ -217,8 +230,8 @@ scenario_s2() {
   local project home
   project="$(fresh_project "$WORK/s2")"
   home="$(fresh_home "$BENCH/home-s2")"
-  seed_gradle_dist "$home" "$BENCH/home-s1"
-  BENCH_NOTE="只有 GH 依赖层 + 远程构建缓存；未还原预热包；源码未改动" \
+  seed_l1 "$home" "$BENCH/home-s1"
+  BENCH_NOTE="L1 依赖层已恢复 + L2 远程构建缓存；未还原预热包(L3)；源码未改动" \
   run_gradle s2 "$home" "$project" read
 }
 
@@ -227,9 +240,9 @@ scenario_s3() {
   local project home touched
   project="$(fresh_project "$WORK/s3")"
   home="$(fresh_home "$BENCH/home-s3")"
-  seed_gradle_dist "$home" "$BENCH/home-s1"
+  seed_l1 "$home" "$BENCH/home-s1"
   touched="$(touch_source "$project")"; log "  改动：$touched"
-  BENCH_NOTE="改一行代码；只有远程构建缓存，未还原预热包" \
+  BENCH_NOTE="L1 依赖层已恢复 + L2 远程构建缓存；未还原预热包(L3)；改一行代码" \
   run_gradle s3 "$home" "$project" read
 }
 
@@ -238,7 +251,7 @@ scenario_s3b() {
   local project home touched
   project="$(fresh_project "$WORK/s3b")"
   home="$(fresh_home "$BENCH/home-s3b")"
-  seed_gradle_dist "$home" "$BENCH/home-s1"
+  seed_l1 "$home" "$BENCH/home-s1"
   # 模拟 CI 把工程目录 .gradle 一起缓存/恢复（CC 条目就住在那里）
   if [[ -d "$WORK/s1/$PROJECT_NAME/.gradle" ]]; then
     mkdir -p "$project/.gradle"
@@ -248,7 +261,7 @@ scenario_s3b() {
     bad "  s1 工程里没有 .gradle，跳过恢复（s3b 将退化成 s3）"
   fi
   touched="$(touch_source "$project")"; log "  改动：$touched"
-  BENCH_NOTE="改一行代码；项目 .gradle 一并恢复（验证配置缓存能否跨 Runner 复用）" \
+  BENCH_NOTE="L1+L2 基础上再恢复项目 .gradle（验证配置缓存跨 Runner 复用）" \
   run_gradle s3b "$home" "$project" read
 }
 
@@ -274,7 +287,7 @@ scenario_s4() {
   bash "$ROOT/tools/warmpack.sh" restore "$pack" "$home" 2>&1 | sed 's/^/  /' >&2
   local touched
   touched="$(touch_source "$project")"; log "  改动：$touched"
-  BENCH_NOTE="预热包已还原（跨仓库共享 NeoForm/依赖）+ 远程构建缓存；改一行代码" \
+  BENCH_NOTE="L1+L3 预热包已还原 + L2 远程构建缓存；改一行代码（黑盒子完整形态）" \
   run_gradle s4 "$home" "$project" read
 }
 
@@ -288,7 +301,7 @@ scenario_s0b() {
   log "  还原预热包 $(du -h "$pack" | cut -f1) → $home"
   bash "$ROOT/tools/warmpack.sh" restore "$pack" "$home" 2>&1 | sed 's/^/  /' >&2
   touch_source "$project" >/dev/null
-  BENCH_NOTE="预热包已还原，但远程构建缓存关闭 ⇒ 与 s4 的差值就是 L2 的贡献" \
+  BENCH_NOTE="L1+L3 预热包已还原，但 L2 远程构建缓存关闭 ⇒ 与 s4 的差值就是 L2 的贡献" \
   run_gradle s0b "$home" "$project" nohub
 }
 

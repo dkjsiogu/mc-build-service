@@ -1,0 +1,95 @@
+# 消费者模板 ③：黑盒子是**私有**仓库时怎么接（实测唯一可行的路径）
+# =====================================================================================
+# 为什么需要这个模板（实测结论，见 docs/06-github-notes.md）：
+#   私有仓库的 reusable workflow **不能**被另一个私有仓库调用 ——
+#   GitHub 连解析都不解析：运行记录 0 秒失败、jobs 数 0。
+#   （同仓库调用正常，8 秒成功；所以不是语法问题，是可见性限制。）
+#
+# 于是私有黑盒子只有一条路：**自己检出黑盒子，然后跑它的脚本**。
+# 代价是每个消费仓库多这 30 行 YAML；好处是不需要把黑盒子公开。
+#
+# 需要的 secret 比公开方案多一个：
+#   MC_HUB_TOKEN   有 repo 读权限的 PAT（用来检出私有黑盒子仓库）
+name: build (private hub)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: 检出被测项目
+        uses: actions/checkout@v7
+        with:
+          path: project
+          fetch-depth: 1
+
+      - name: 检出黑盒子（私有仓库 ⇒ 必须用 PAT）
+        uses: actions/checkout@v7
+        with:
+          repository: dkjsiogu/mc-build-service
+          ref: v1
+          path: .mc-build-hub
+          token: ${{ secrets.MC_HUB_TOKEN }}
+
+      - name: 安装 JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # 依赖层缓存：与公开方案的 reusable-build.yml 保持一致
+      - name: 配置 Gradle（依赖层缓存）
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          cache-encryption-key: ${{ secrets.MC_HUB_CC_KEY }}   # 配置缓存跨 Runner 复用的开关
+          cache-cleanup: on-success
+          gradle-home-cache-excludes: |
+            caches/build-cache-1
+            caches/keyrings
+          validate-wrappers: true
+          add-job-summary: always
+
+      - name: 装 init 脚本
+        run: |
+          mkdir -p "$GRADLE_USER_HOME/init.d"
+          cp .mc-build-hub/gradle/mc-build-hub.init.gradle \
+             "$GRADLE_USER_HOME/init.d/00-mc-build-hub.init.gradle"
+
+      - name: 恢复跨仓库预热包
+        env:
+          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+          PROJECT_DIR: project
+        run: bash .mc-build-hub/tools/ci/warmpack-ci.sh restore
+
+      - name: 构建
+        id: run
+        env:
+          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+          MC_HUB_CACHE_PUSH: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+          PROJECT_DIR: project
+          GRADLE_TASKS: build
+        run: bash .mc-build-hub/tools/ci/run-gradle.sh
+
+      - name: 上传产物
+        if: steps.run.outputs.result == 'SUCCESSFUL'
+        uses: actions/upload-artifact@v7
+        with:
+          name: mod-jar
+          path: project/**/build/libs/*.jar
+          retention-days: 14
+          if-no-files-found: warn

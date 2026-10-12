@@ -58,6 +58,14 @@ while IFS= read -r f; do
 done < <(find "$ROOT" \( -name '*.mjs' -o -name '*.js' \) -not -path '*/.bench/*' -not -path '*/node_modules/*' | sort)
 [[ $node_fail -eq 0 ]] && ok "所有 JS 文件 node --check 通过"
 
+# 可选：装了 actionlint 就顺手做一次真实语义校验（比 YAML 解析严格得多）
+if command -v actionlint >/dev/null 2>&1; then
+  assert "actionlint：hub 工作流语义校验" actionlint "$ROOT"/.github/workflows/*.yml
+  assert "actionlint：消费者模板语义校验" actionlint "$ROOT"/examples/consumer/.github/workflows/*.yml "$ROOT"/examples/consumer-private-hub/.github/workflows/*.yml
+else
+  echo "  · 跳过 actionlint（未安装：brew/apt 或从 GitHub Releases 取单文件二进制）"
+fi
+
 yaml_fail=0
 for f in "$ROOT"/.github/workflows/*.yml; do
   python3 -c "import yaml,sys; yaml.safe_load(open(sys.argv[1],encoding='utf-8'))" "$f" 2>/dev/null || { bad "YAML 解析失败：${f#$ROOT/}"; yaml_fail=1; }

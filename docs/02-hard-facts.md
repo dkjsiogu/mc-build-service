@@ -146,7 +146,32 @@ Caching disabled for task ':processResources' because:
 
 ---
 
-## F11. NeoForm 反编译的堆与线程数**由 NFRT 强制决定**，`org.gradle.jvmargs` 管不着
+## F12. NeoForm 的重活**不可能**进 Gradle 构建缓存 —— 它自己做缓存，而那份缓存在 Gradle User Home
+
+**证据**：moddev-gradle 源码 `src/main/java/net/neoforged/nfrtgradle/CreateMinecraftArtifacts.java`：
+
+```java
+/**
+ * The primary task for creating the Minecraft artifacts that mods will be compiled against,
+ * using the NFRT CLI.
+ */
+@DisableCachingByDefault(because = "Implements its own caching")
+@ApiStatus.NonExtendable
+public abstract class CreateMinecraftArtifacts extends NeoFormRuntimeTask {
+```
+
+**后果（这条推翻了"把反混淆任务输出交给远程 Build Cache"的直觉方案）**：
+- `createMinecraftArtifacts`、`neoFormRuntime*` 这些**真正贵的任务**（实测最慢 77.6s + 31.0s + 15.4s）
+  **永远不会**产生 Gradle 构建缓存条目 ⇒ 远程构建缓存对它们**一点办法都没有**。
+- 它们把自己的结果缓存在 **`~/.gradle/caches/neoformruntime`**（本机实测 **1.2G**）。
+- 所以要让冷 Runner 跳过 NeoForm，**唯一可行的手段就是把这 1.2G 搬过去** ——
+  这正是本仓库 L3「预热包」存在的唯一理由，也是它必须包含 `caches/neoformruntime` 的原因。
+- 实测印证：一次 `assemble` 只向远程构建缓存写入 **1 个条目**（`:compileJava`，1.9MB）；
+  其余"重的"部分全靠 L1/L3。
+
+> 一句话总结三层各自的不可替代性：
+> **L1 让 Gradle 本身起得来，L3 让 NeoForm 不用重算，L2 让剩下的编译别重跑。**
+
 
 **证据**：NeoFormRuntime 源码 `ExternalJavaToolAction.setJvmArgs`：
 
