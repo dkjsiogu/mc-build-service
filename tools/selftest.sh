@@ -72,6 +72,10 @@ for _ in $(seq 1 40); do curl -sf "http://127.0.0.1:$PORT/healthz" >/dev/null 2>
 assert "缓存节点健康检查" curl -sf "http://127.0.0.1:$PORT/healthz"
 assert "一致性测试（Gradle HTTP 构建缓存协议）" node "$ROOT/worker/test/conformance.mjs" "http://127.0.0.1:$PORT" "$TOKEN"
 CACHE_URL="http://127.0.0.1:$PORT/cache/"
+# 关键：自检节点开了鉴权，就必须把同一套凭证交给 Gradle —— 否则 401 会把命中率**静默**清零，
+# 于是"什么都没省"却看不出原因（这正是本自检第一次在 GitHub Runner 上翻车的现场）。
+export MC_HUB_CACHE_USER="${TOKEN%%:*}"
+export MC_HUB_CACHE_PASS="${TOKEN#*:}"
 
 # ---------------------------------------------------------------- ③ 指纹
 sec "③ 预热包指纹"

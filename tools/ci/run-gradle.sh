@@ -45,6 +45,27 @@ echo "  远程推送  : ${MC_HUB_CACHE_PUSH:-false}"
 echo "  CC 密钥   : ${GRADLE_ENCRYPTION_KEY:+已设置}${GRADLE_ENCRYPTION_KEY:-未设置}"
 echo "::endgroup::"
 
+# ---- 远程缓存预检 ----------------------------------------------------------------
+# 不是装饰：缓存节点返回 401/403 时，Gradle 只记一条 warning，构建照样 SUCCESSFUL，
+# 但命中率**永远是 0**。这种"看起来一切正常却一点没省"的故障是缓存系统里最贵的故障，
+# 所以构建前先探一次，并把话说清楚（实测踩坑现场：tools/selftest.sh 在 GitHub Runner 上翻车那次）。
+if [[ -n "${MC_HUB_CACHE_URL:-}" ]]; then
+  probe_key="mc-build-hub-preflight-$(date +%s)-$$"
+  probe_auth=()
+  [[ -n "${MC_HUB_CACHE_USER:-}" ]] && probe_auth=(-u "$MC_HUB_CACHE_USER:${MC_HUB_CACHE_PASS:-}")
+  probe_code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+    ${probe_auth[@]+"${probe_auth[@]}"} "${MC_HUB_CACHE_URL%/}/$probe_key" 2>/dev/null || echo 000)"
+  case "$probe_code" in
+    404) echo "远程缓存预检：通过（HTTP 404 = 未命中，符合协议）" ;;
+    200) echo "远程缓存预检：通过（HTTP 200，探针键意外命中，无碍）" ;;
+    401|403) echo "::warning::远程缓存预检失败（HTTP $probe_code）⇒ 本次远程缓存**全部失效**，命中率会是 0。请检查 MC_HUB_CACHE_USER / MC_HUB_CACHE_PASS。" ;;
+    000) echo "::warning::远程缓存预检无法连通（网络/DNS/地址写错？）：${MC_HUB_CACHE_URL}" ;;
+    *)   echo "::warning::远程缓存预检返回意外状态码 HTTP $probe_code（协议要求未命中必须是 404）" ;;
+  esac
+else
+  echo "远程缓存预检：跳过（未配置 MC_HUB_CACHE_URL，本次只有本地/依赖层收益）"
+fi
+
 start=$(date +%s)
 (
   cd "$PROJECT_DIR"
