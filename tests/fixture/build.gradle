@@ -1,0 +1,33 @@
+// 黑盒子自检用的最小 Gradle 工程：**故意不碰 Minecraft**
+// 目的：在几秒内把"init 脚本接线 / 远程构建缓存命中 / 预热包往返"验穿，
+//       而不是每次都等 NeoForm 反混淆五分钟才知道缓存通没通。
+plugins {
+    id 'java'
+}
+
+group = 'dev.mcbuildhub.fixture'
+version = '1.0.0'
+
+// 三个天然的"可缓存任务"（java 插件自带，且默认 cacheable）：
+//   :compileJava → :processResources → :jar
+// 第二次在干净 GRADLE_USER_HOME 里构建时，它们应当全部 FROM-CACHE。
+tasks.named('jar') {
+    manifest {
+        attributes('Implementation-Title': 'mc-build-hub-fixture',
+                   'Implementation-Version': project.version)
+    }
+}
+
+// 再加一个自定义可缓存任务：让"命中/未命中"在日志里更显眼
+def stampFile = layout.buildDirectory.file('hub-stamp/stamp.txt')
+tasks.register('hubStamp') {
+    def stamp = providers.gradleProperty('fixture.stamp').orElse('v1')
+    inputs.property('stamp', stamp)
+    outputs.file(stampFile)
+    doLast {
+        def f = stampFile.get().asFile
+        f.parentFile.mkdirs()
+        f.text = "mc-build-hub fixture stamp=${stamp.get()}\n"
+    }
+}
+tasks.named('processResources') { dependsOn 'hubStamp' }

@@ -1,0 +1,37 @@
+# 消费者模板 ①：把构建交给黑盒子（放进你的 mod 仓库 .github/workflows/build.yml）
+# =====================================================================================
+# 接入成本 = 这一个文件 + 3 个 secret。项目本身一行都不用改。
+#
+# 必需的 Repository secrets（Settings → Secrets and variables → Actions）：
+#   MC_HUB_CACHE_URL    形如 https://mc-build-hub-cache.<你的子域>.workers.dev/cache/
+#   MC_HUB_CACHE_USER   与 Worker 的 CACHE_TOKEN 前半段一致
+#   MC_HUB_CACHE_PASS   后半段
+#   MC_HUB_CC_KEY       可选但强烈建议：openssl rand -base64 16
+#                       —— 它同时是"配置缓存能不能跨 Runner 复用"的开关（见 docs/02）
+#   MC_HUB_TOKEN        可选：黑盒子仓库为私有时，读它用的 PAT
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# 同一分支的新推送取消旧运行：Runner 分钟数省下来给真正需要的构建
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: dkjsiogu/mc-build-service/.github/workflows/reusable-build.yml@v1
+    with:
+      # 共享作用域只是给人看的标签；预热包指纹是自动算的（MC/loader/Gradle/JDK 四要素）
+      cache-scope: 'mc1.21.1-neoforge21.1.233'
+      gradle-tasks: 'build'
+      java-version: '21'
+      artifact-path: '**/build/libs/*.jar'
+      artifact-name: mod-jar
+      # 主干推送才写远程缓存，PR 只读 —— 避免 PR 的产物污染公共缓存
+      remote-cache-push: 'auto'
+    secrets: inherit

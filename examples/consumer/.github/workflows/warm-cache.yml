@@ -1,0 +1,33 @@
+# 消费者模板 ②：定时预热（放进你的 mod 仓库 .github/workflows/warm-cache.yml）
+# =====================================================================================
+# 为什么值得单独开一个定时任务：
+#   托管 Runner 上没有常驻 daemon，缓存也不会自己变热。把"贵且与代码无关"的部分
+#   （NeoForm 反混淆/重编译、依赖解析）提前算好塞进 R2，白天改代码时就只剩增量编译。
+#
+# 什么时候跑：每天凌晨一次 + 换 MC/loader 版本时手动触发一次。
+name: warm-cache
+
+on:
+  schedule:
+    # UTC 18:00 = 北京 02:00。避开白天开发时段，也不占用自托管机器的带宽
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      save-warmpack:
+        description: 是否重新打包跨仓库预热包
+        type: boolean
+        default: true
+
+concurrency:
+  group: warm-cache
+  cancel-in-progress: false
+
+jobs:
+  warm:
+    uses: dkjsiogu/mc-build-service/.github/workflows/reusable-warm-cache.yml@v1
+    with:
+      # classes 已经覆盖 NeoForm 全链路 + 编译，是"喂缓存"最划算的任务集合
+      warm-tasks: 'classes'
+      cache-scope: 'mc1.21.1-neoforge21.1.233'
+      save-warmpack: ${{ github.event_name == 'workflow_dispatch' && inputs.save-warmpack || true }}
+    secrets: inherit

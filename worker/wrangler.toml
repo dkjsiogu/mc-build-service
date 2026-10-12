@@ -1,0 +1,35 @@
+# mc-build-hub-cache —— R2 版 Gradle 远程构建缓存（Cloudflare Worker）
+#
+# 部署步骤（详见 docs/03-r2-setup.md）：
+#   1) wrangler r2 bucket create mc-build-cache
+#   2) wrangler secret put CACHE_TOKEN        # 形如 hub:<32位随机串>，与 GitHub secret 里的一致
+#   3) wrangler deploy
+#   4) 把输出的 https://<name>.<subdomain>.workers.dev/cache/ 填进
+#      GitHub secret: MC_HUB_CACHE_URL
+
+name = "mc-build-hub-cache"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Workers 免费版即可：请求量 = 构建次数 × 条目数，个人/小团队远达不到限制
+workers_dev = true
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "mc-build-cache"
+
+[vars]
+# 单条目上限（字节）：Gradle 默认单条目 ≤ 512MB 才会写远程缓存
+MAX_ENTRY_BYTES = "536870912"
+# 预热包上限
+MAX_PACK_BYTES = "4294967296"
+# 打开后每次请求都会打日志（排查期用，平时关掉省配额）
+VERBOSE = "false"
+
+# 可选：自定义域名（比 workers.dev 更快更稳，且便于 Worker 前的缓存规则）
+# [[routes]]
+# pattern = "cache.example.com"
+# custom_domain = true
+
+# 建议同时给 R2 桶配生命周期规则（bucket 级）：
+#   删除 30 天未修改的对象 —— 构建缓存是"可再生资源"，过期就该丢，别让它无限长胖。

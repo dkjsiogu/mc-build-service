@@ -1,0 +1,164 @@
+/*
+ * mc-build-hub.init.gradle —— 「黑盒子」构建缓存枢纽的统一接线（Gradle 初始化脚本）
+ * =====================================================================================
+ * v0.2.0
+ *
+ * 安装位置（两种，效果相同）：
+ *   ① $GRADLE_USER_HOME/init.d/mc-build-hub.init.gradle   ← 全局生效，之后新来的项目自动继承
+ *   ② 命令行 -I /path/to/mc-build-hub.init.gradle          ← CI 里显式指定，仓库零改动
+ *
+ * 做三件事：
+ *   A. 环境契约：从 MC_HUB_* 读远程缓存地址/凭证/推送策略
+ *   B. 强制开关：并行 + 构建缓存（StartParameter 上有 setter，项目写 false 也盖得回来）
+ *   C. 远程构建缓存接线：Gradle 内置 HttpBuildCache → Cloudflare Worker(R2) / 自托管节点
+ *      （不引入任何第三方 Gradle 插件 ⇒ 插件解析失败这条风险直接归零）
+ *
+ * ⚠️ 本脚本最重要的一条纪律：**绝不注册任何构建监听器**
+ *    Gradle 9 起，「配置缓存问题」默认是 **失败**（不是告警）。而
+ *    TaskExecutionGraph.beforeTask / afterTask、Gradle.buildFinished 这类监听器注册
+ *    被配置缓存判为 unsupported ⇒ 配置缓存条目作废 **并且整个构建 FAILED**。
+ *    （v0.1 就是这么把构建搞挂的，实测日志见 evidence/01-cc-listener-trap.md）
+ *    所以逐任务计时/命中率统计改由 **日志解析** 完成（tools/report.mjs），
+ *    对构建本身零侵入 —— 想拿数据不该拿构建的稳定性做交换。
+ *
+ * ⚠️ 第二条纪律：init 脚本是配置缓存的输入之一。
+ *    改这个文件 = 所有项目的配置缓存条目失效一次（换来的是命中期间的真实收益）。
+ *    所以脚本内容要保持稳定，改完记得在 CHANGELOG 里说明"会失效一次 CC"。
+ *
+ * 明确做不到的事（别在这里找）：
+ *   - 强制 configuration-cache：Gradle 9.2 的 StartParameter 只有 isConfigurationCacheRequested()，
+ *     没有 setter（javap 核实）⇒ 只能靠项目 gradle.properties 或命令行 --configuration-cache。
+ *   - 关掉 daemon：StartParameter 上根本没有 daemon 成员（javap 核实）⇒ 只能告警。
+ */
+
+def HUB = "[mc-build-hub]"
+def hubVersion = "0.2.0"
+
+def env = System.getenv()
+def cacheUrl      = env.MC_HUB_CACHE_URL?.trim()
+def cacheUser     = env.MC_HUB_CACHE_USER?.trim()
+def cachePass     = env.MC_HUB_CACHE_PASS
+def cachePush     = (env.MC_HUB_CACHE_PUSH ?: "false").toBoolean()
+def localCacheDir = env.MC_HUB_LOCAL_CACHE_DIR?.trim()
+def configFile    = env.MC_HUB_CONFIG_FILE?.trim()
+def enforceParallel = (env.MC_HUB_ENFORCE_PARALLEL ?: "true").toBoolean()
+def quiet = (env.MC_HUB_QUIET ?: "false").toBoolean()
+
+def notes = []
+def say  = { String m -> if (!quiet) { try { println "${HUB} ${m}" } catch (Throwable ignored) { } } }
+def warn = { String m -> notes << m; try { logger.warn("${HUB} ${m}") } catch (Throwable ignored) { } }
+
+// ---- A/B. 强制并行 + 构建缓存 --------------------------------------------------------
+try {
+    def sp = gradle.startParameter
+    if (enforceParallel) {
+        try {
+            if (!sp.parallelProjectExecutionEnabled) {
+                sp.parallelProjectExecutionEnabled = true
+                say("已强制开启并行构建（项目写了 false，被 StartParameter 盖回 true）")
+            }
+        } catch (Throwable t) { warn("无法强制并行：${t.message}") }
+    }
+    try {
+        if (!sp.buildCacheEnabled) {
+            sp.buildCacheEnabled = true
+            say("已强制开启构建缓存（项目写了 false，被 StartParameter 盖回 true）")
+        }
+    } catch (Throwable t) { warn("无法强制构建缓存：${t.message}") }
+} catch (Throwable t) {
+    warn("StartParameter 调优失败（忽略）：${t.message}")
+}
+
+// ---- C. 远程构建缓存接线 + D. 结构性告警（settings 评估完成后，一次性）----------------
+try {
+    settingsEvaluated { settings ->
+        // C. 远程缓存
+        try {
+            if (cacheUrl) {
+                def uri = new java.net.URI(cacheUrl.endsWith("/") ? cacheUrl : cacheUrl + "/")
+                settings.buildCache {
+                    // 属性名一律按 Groovy 约定（= setter 去掉 set，不是 getter 名）：
+                    //   push ← setPush / allowUntrustedServer ← setAllowUntrustedServer
+                    //   useExpectContinue ← setUseExpectContinue
+                    // 写成 isPush / isUseExpectContinue 会抛 "unknown property"（v0.2 实测踩过）。
+                    remote(org.gradle.caching.http.HttpBuildCache) { remote ->
+                        remote.url = uri
+                        remote.push = cachePush
+                        // 自建节点常见自签证书/明文 http：不放开的话 Gradle 直接拒用
+                        try { remote.allowUntrustedServer = true } catch (Throwable ignored) { }
+                        try { remote.allowInsecureProtocol = (uri.scheme == "http") } catch (Throwable ignored) { }
+                        // 大条目（NeoForm 中间产物可达数百 MB）省掉 100-continue 往返
+                        try { remote.useExpectContinue = false } catch (Throwable ignored) { }
+                        if (cacheUser) {
+                            remote.credentials {
+                                username = cacheUser
+                                password = cachePass ?: ""
+                            }
+                        }
+                    }
+                    if (localCacheDir) {
+                        local { directory = new File(localCacheDir) }
+                    }
+                }
+                say("远程构建缓存已接线：${uri}（push=${cachePush}${cacheUser ? '，带凭证' : '，匿名'}）")
+            } else {
+                say("未设置 MC_HUB_CACHE_URL ⇒ 仅本地构建缓存（本地开发没问题；CI 上会白丢跨仓库复用的收益）")
+            }
+        } catch (Throwable t) {
+            warn("远程构建缓存接线失败，已降级为仅本地缓存：${t.message}")
+        }
+
+        // D. 结构性告警：项目配置把收益关掉时，让人看得见（只读文件，不注册监听器）
+        try {
+            def f = new File(settings.rootDir, "gradle.properties")
+            if (f.isFile()) {
+                def text = f.getText("UTF-8")
+                if (text =~ /(?m)^\s*org\.gradle\.configuration-cache\s*=\s*false\s*$/) {
+                    warn("项目显式关闭 configuration-cache ⇒ 每次构建重算任务图（大项目 30~60s 白花）；" +
+                         "排查是插件不兼容，还是陈旧的规避？CI 可用 --configuration-cache 单跑一次验证。")
+                }
+                if (text =~ /(?m)^\s*org\.gradle\.caching\s*=\s*false\s*$/) {
+                    warn("项目显式关闭构建缓存 ⇒ 远程缓存再快也复用不到任务输出。")
+                }
+                if (text =~ /(?m)^\s*org\.gradle\.daemon\s*=\s*true\s*$/) {
+                    warn("项目写了 org.gradle.daemon=true ⇒ 会留下常驻 Gradle daemon（CI 无意义，本机占内存）。")
+                }
+            }
+        } catch (Throwable ignored) { }
+
+        // E. 一行配置横幅（CI 日志里一眼看清"这次跑的到底是什么配置"）
+        try {
+            def banner = [
+                "hub=${hubVersion}",
+                "gradle=${gradle.gradleVersion}",
+                "java=${System.getProperty('java.version')}",
+                "home=${gradle.gradleUserHomeDir}",
+                "parallel=${gradle.startParameter.parallelProjectExecutionEnabled}",
+                "caching=${gradle.startParameter.buildCacheEnabled}",
+                "cc=${gradle.startParameter.configurationCacheRequested}",
+                "workers=${gradle.startParameter.maxWorkerCount}",
+                "remote=${cacheUrl ?: 'none'}",
+                "push=${cachePush}"
+            ].join(" ")
+            say("配置 ${banner}")
+            if (configFile) {
+                try {
+                    def out = new File(configFile)
+                    out.parentFile?.mkdirs()
+                    out.setText("${HUB} ${banner}\n", "UTF-8")
+                } catch (Throwable ignored) { }
+            }
+        } catch (Throwable ignored) { }
+    }
+} catch (Throwable t) {
+    warn("settings 钩子安装失败（忽略）：${t.message}")
+}
+
+// ---- F. 收尾提示（不用 buildFinished —— 那个在配置缓存下直接违规）----------------------
+// 统计口径改由 tools/report.mjs 解析构建日志得到：见 tools/report.mjs 的注释。
+if (!notes.isEmpty()) {
+    try {
+        say("本次共 ${notes.size()} 条配置告警，汇总：")
+        notes.each { say("  · ${it}") }
+    } catch (Throwable ignored) { }
+}

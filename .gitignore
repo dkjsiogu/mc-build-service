@@ -1,0 +1,28 @@
+# 本地/CI 现场（基准数据、模拟 Runner 的 GRADLE_USER_HOME、日志）
+.bench/
+.cache-node/
+
+# 构建产物
+build/
+out/
+*.class
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node
+node_modules/
+package-lock.json
+
+# 编辑器/系统
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# 本地凭证（R2/缓存节点密钥绝不入库）
+.env
+.env.local
+*.secret

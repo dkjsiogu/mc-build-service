@@ -1,0 +1,53 @@
+# 黑盒子自检：每次改动都必须证明"缓存链路还是通的"
+# =====================================================================================
+# 为什么不能只跑 lint：这条链路上绝大多数失效都是**静默**的 ——
+#   · 缓存节点返回 401 → Gradle 只记一条 warning，构建照样 SUCCESSFUL，命中率永远是 0
+#   · 预热包指纹算错 → 别的版本产物被喂进来，编译期报一堆莫名其妙的错
+#   · init 脚本里注册了监听器 → Gradle 9 直接判构建失败（这个不静默，但很致命）
+# 所以 self-test 会在真实的 Gradle 构建上断言：干净 home 构建 → 远程缓存写入 →
+# 另一个干净 home 构建 → **必须 FROM-CACHE**。
+name: selftest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  selftest:
+    name: 全链路自检
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # 自检本身也要有依赖层缓存，否则每次都要重下 Gradle 发行版
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          validate-wrappers: false   # 自检夹具用的 wrapper 由仓库自带，另行校验
+
+      - name: 运行自检（静态检查 + 协议一致性 + 端到端缓存闭环 + 预热包往返）
+        run: tools/selftest.sh
+
+      - name: 上传自检现场
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: selftest-artifacts
+          path: |
+            .bench/selftest/node.log
+            .bench/selftest/run1/hub-build.log
+            .bench/selftest/run2/hub-build.log
+            .bench/selftest/*-stats.json
+          if-no-files-found: ignore
+          retention-days: 7

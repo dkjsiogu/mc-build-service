@@ -1,0 +1,233 @@
+# mc-build-hub · 可复用构建工作流（黑盒子的入口）
+# =====================================================================================
+# 其它仓库这样调用（见 examples/consumer/.github/workflows/build.yml）：
+#
+#   jobs:
+#     build:
+#       uses: dkjsiogu/mc-build-service/.github/workflows/reusable-build.yml@v1
+#       with:
+#         gradle-tasks: 'build'
+#         cache-scope: 'mc1.21.1-neoforge21.1.233'
+#       secrets: inherit       # 把 MC_HUB_* 传进来
+#
+# 它负责的四件事：
+#   ① 恢复依赖层（Gradle User Home 缓存：依赖/发行版/transforms）
+#   ② 恢复跨仓库预热包（NeoForm 反混淆产物 —— 托管 Runner 上最贵的那一段）
+#   ③ 用统一 init 脚本接上远程构建缓存（R2/自托管节点），并强制并行+构建缓存
+#   ④ 把「时间去哪了 + 命中多少」写成 Job Summary 与 outputs，收益可核对
+name: mc-build-hub · reusable build
+
+on:
+  workflow_call:
+    inputs:
+      # ---- 黑盒子自身 ----
+      hub-repository:
+        description: 黑盒子仓库（默认本仓库）
+        type: string
+        default: dkjsiogu/mc-build-service
+      hub-ref:
+        description: 黑盒子版本（建议钉 tag，别用浮动的 main）
+        type: string
+        default: v1
+
+      # ---- 被测项目 ----
+      project-path:
+        description: 仓库内项目子路径（默认仓库根）
+        type: string
+        default: '.'
+      gradle-tasks:
+        description: 要执行的 Gradle 任务
+        type: string
+        default: 'build'
+      gradle-jvmargs:
+        description: 覆盖 org.gradle.jvmargs（留空则用项目自己的设置）
+        type: string
+        default: ''
+      extra-args:
+        description: 追加给 Gradle 的参数
+        type: string
+        default: ''
+
+      # ---- 运行环境 ----
+      runner:
+        description: runs-on 标签
+        type: string
+        default: ubuntu-latest
+      java-version:
+        type: string
+        default: '21'
+      java-distribution:
+        type: string
+        default: temurin
+      timeout-minutes:
+        type: number
+        default: 60
+
+      # ---- 缓存策略 ----
+      cache-scope:
+        description: |
+          共享作用域标签（同 MC/loader 版本的项目填同一个值，便于人肉核对缓存归属；
+          预热包指纹是自动算的，不依赖这个值）。
+        type: string
+        default: ''
+      warmpack:
+        description: 'auto=按指纹取预热包；off=不取（只靠 GH 缓存 + 远程构建缓存）'
+        type: string
+        default: 'auto'
+      remote-cache-push:
+        description: 'auto=仅默认分支推送远程缓存；true/false=强制'
+        type: string
+        default: 'auto'
+      gh-cache-read-only:
+        description: 'auto=默认分支可写、其它分支只读（setup-gradle 的默认策略）'
+        type: string
+        default: 'auto'
+      cache-excludes:
+        description: 从 Gradle User Home 缓存里排除的路径
+        type: string
+        default: |
+          caches/build-cache-1
+          caches/keyrings
+
+      # ---- 产物 ----
+      upload-artifacts:
+        type: boolean
+        default: true
+      artifact-path:
+        type: string
+        default: '**/build/libs/*.jar'
+      artifact-name:
+        type: string
+        default: mod-jar
+      artifact-retention-days:
+        type: number
+        default: 14
+
+    secrets:
+      MC_HUB_CACHE_URL:
+        description: 远程构建缓存地址（形如 https://<worker>.workers.dev/cache/）
+        required: false
+      MC_HUB_CACHE_USER:
+        required: false
+      MC_HUB_CACHE_PASS:
+        required: false
+      MC_HUB_CC_KEY:
+        description: base64 的 AES 密钥（openssl rand -base64 16），用于加密配置缓存数据
+        required: false
+      MC_HUB_TOKEN:
+        description: 读取私有黑盒子仓库用的 PAT（黑盒子为公开仓库时无需）
+        required: false
+
+    outputs:
+      result:
+        description: Gradle 构建结果
+        value: ${{ jobs.build.outputs.result }}
+      wall-seconds:
+        description: 整个 Gradle 调用的墙钟秒数
+        value: ${{ jobs.build.outputs.wall-seconds }}
+      cache-hit-rate:
+        description: 构建缓存命中率（from-cache ÷ (from-cache + 执行)）
+        value: ${{ jobs.build.outputs.cache-hit-rate }}
+      stats:
+        description: 结构化统计（任务态/配置缓存/五段时间分布）
+        value: ${{ jobs.build.outputs.stats }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    outputs:
+      result: ${{ steps.run.outputs.result }}
+      wall-seconds: ${{ steps.run.outputs.wall-seconds }}
+      cache-hit-rate: ${{ steps.run.outputs.cache-hit-rate }}
+      stats: ${{ steps.run.outputs.stats-json }}
+    steps:
+      - name: 检出被测项目
+        uses: actions/checkout@v7
+        with:
+          path: project
+          fetch-depth: 1
+
+      - name: 安装 JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.java-distribution }}
+          java-version: ${{ inputs.java-version }}
+
+      # 依赖层缓存。cache-provider 明确用 basic（MIT，走 actions/cache）：
+      # enhanced 是商业实现，公开仓库免费、私有仓库目前是 Free Preview —— 黑盒子不该把
+      # 关键路径押在一个可能改条款的服务上。
+      - name: 配置 Gradle（依赖层缓存）
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          cache-read-only: ${{ inputs.gh-cache-read-only != 'auto' && inputs.gh-cache-read-only || (github.ref_name != github.event.repository.default_branch) }}
+          cache-encryption-key: ${{ secrets.MC_HUB_CC_KEY }}
+          cache-cleanup: on-success
+          gradle-home-cache-excludes: ${{ inputs.cache-excludes }}
+          validate-wrappers: true
+          add-job-summary: always
+
+      - name: 检出黑盒子
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.hub-repository }}
+          ref: ${{ inputs.hub-ref }}
+          path: .mc-build-hub
+          token: ${{ secrets.MC_HUB_TOKEN || github.token }}
+
+      # init.d 里按文件名字典序执行；setup-gradle 自己会注入
+      # gradle-actions.build-result-capture.init.gradle，所以这里用 00- 前缀确保我们先跑。
+      - name: 装 init 脚本
+        run: |
+          mkdir -p "$GRADLE_USER_HOME/init.d"
+          cp .mc-build-hub/gradle/mc-build-hub.init.gradle \
+             "$GRADLE_USER_HOME/init.d/00-mc-build-hub.init.gradle"
+          echo "已安装：$(ls "$GRADLE_USER_HOME/init.d/")"
+
+      - name: 恢复跨仓库预热包（NeoForm/依赖快照）
+        if: inputs.warmpack != 'off'
+        env:
+          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+          PROJECT_DIR: project/${{ inputs.project-path }}
+          WARMPACK: ${{ inputs.warmpack }}
+        run: bash .mc-build-hub/tools/ci/warmpack-ci.sh restore
+
+      - name: 构建
+        id: run
+        env:
+          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+          MC_HUB_CACHE_PUSH: ${{ inputs.remote-cache-push != 'auto' && inputs.remote-cache-push || (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name != 'pull_request') }}
+          PROJECT_DIR: project/${{ inputs.project-path }}
+          GRADLE_TASKS: ${{ inputs.gradle-tasks }}
+          GRADLE_JVMARGS: ${{ inputs.gradle-jvmargs }}
+          EXTRA_ARGS: ${{ inputs.extra-args }}
+        run: bash .mc-build-hub/tools/ci/run-gradle.sh
+
+      - name: 上传构建日志（失败时最有用）
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact-name }}-build-log
+          path: |
+            hub-build.log
+            hub-stats.json
+          retention-days: ${{ inputs.artifact-retention-days }}
+          if-no-files-found: ignore
+
+      - name: 上传产物
+        if: inputs.upload-artifacts && steps.run.outputs.result == 'SUCCESSFUL'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: project/${{ inputs.artifact-path }}
+          retention-days: ${{ inputs.artifact-retention-days }}
+          if-no-files-found: warn

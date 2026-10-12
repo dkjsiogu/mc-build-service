@@ -1,0 +1,168 @@
+# mc-build-hub · 可复用预热工作流
+# =====================================================================================
+# 作用：抢在"开发要构建"之前，把贵的东西先算好、存进两级缓存：
+#   ① 远程构建缓存（R2）：任务输出（含 NeoForm 重编译产物）→ 任何仓库都能命中
+#   ② 预热包（R2）：GRADLE_USER_HOME 里的共享目录快照 → 冷 Runner 免下载、免反混淆
+#
+# 调用方（每个 mod 仓库放一份，定时跑，见 examples/consumer）：
+#   on:
+#     schedule: [{ cron: '0 18 * * *' }]     # UTC 18:00 = 北京 02:00
+#     workflow_dispatch:
+#   jobs:
+#     warm:
+#       uses: dkjsiogu/mc-build-service/.github/workflows/reusable-warm-cache.yml@v1
+#       secrets: inherit
+#
+# 注意：预热**不产出发布产物**，它跑的是依赖解析 + 编译这类"喂缓存"的任务。
+name: mc-build-hub · reusable warm cache
+
+on:
+  workflow_call:
+    inputs:
+      hub-repository:
+        type: string
+        default: dkjsiogu/mc-build-service
+      hub-ref:
+        type: string
+        default: v1
+      project-path:
+        type: string
+        default: '.'
+      warm-tasks:
+        description: 喂缓存用的任务（classes 已覆盖 NeoForm + 编译）
+        type: string
+        default: 'classes'
+      gradle-jvmargs:
+        type: string
+        default: ''
+      runner:
+        type: string
+        default: ubuntu-latest
+      java-version:
+        type: string
+        default: '21'
+      java-distribution:
+        type: string
+        default: temurin
+      timeout-minutes:
+        type: number
+        default: 90
+      cache-scope:
+        type: string
+        default: ''
+      save-warmpack:
+        description: 是否把 GRADLE_USER_HOME 共享目录打包上传为跨仓库预热包
+        type: boolean
+        default: true
+      cache-excludes:
+        type: string
+        default: |
+          caches/build-cache-1
+          caches/keyrings
+    secrets:
+      MC_HUB_CACHE_URL:
+        required: false
+      MC_HUB_CACHE_USER:
+        required: false
+      MC_HUB_CACHE_PASS:
+        required: false
+      MC_HUB_CC_KEY:
+        required: false
+      MC_HUB_TOKEN:
+        required: false
+    outputs:
+      result:
+        value: ${{ jobs.warm.outputs.result }}
+      wall-seconds:
+        value: ${{ jobs.warm.outputs.wall-seconds }}
+      warmpack:
+        description: 本次使用的预热包名
+        value: ${{ jobs.warm.outputs.warmpack }}
+
+permissions:
+  contents: read
+
+jobs:
+  warm:
+    name: warm
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    outputs:
+      result: ${{ steps.run.outputs.result }}
+      wall-seconds: ${{ steps.run.outputs.wall-seconds }}
+      warmpack: ${{ steps.pack.outputs.name }}
+    steps:
+      - name: 检出被测项目
+        uses: actions/checkout@v7
+        with:
+          path: project
+          fetch-depth: 1
+
+      - name: 安装 JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: ${{ inputs.java-distribution }}
+          java-version: ${{ inputs.java-version }}
+
+      # 预热要写 GH 缓存，所以 cache-read-only: false
+      - name: 配置 Gradle（依赖层缓存：可写）
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          cache-read-only: false
+          cache-encryption-key: ${{ secrets.MC_HUB_CC_KEY }}
+          cache-cleanup: on-success
+          gradle-home-cache-excludes: ${{ inputs.cache-excludes }}
+          validate-wrappers: true
+          add-job-summary: always
+
+      - name: 检出黑盒子
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ inputs.hub-repository }}
+          ref: ${{ inputs.hub-ref }}
+          path: .mc-build-hub
+          token: ${{ secrets.MC_HUB_TOKEN || github.token }}
+
+      - name: 装 init 脚本
+        run: |
+          mkdir -p "$GRADLE_USER_HOME/init.d"
+          cp .mc-build-hub/gradle/mc-build-hub.init.gradle \
+             "$GRADLE_USER_HOME/init.d/00-mc-build-hub.init.gradle"
+
+      - name: 预热构建（同时把任务输出推进远程缓存）
+        id: run
+        env:
+          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+          MC_HUB_CACHE_PUSH: 'true'
+          PROJECT_DIR: project/${{ inputs.project-path }}
+          GRADLE_TASKS: ${{ inputs.warm-tasks }}
+          GRADLE_JVMARGS: ${{ inputs.gradle-jvmargs }}
+        run: bash .mc-build-hub/tools/ci/run-gradle.sh
+
+      - name: 打包并上传跨仓库预热包
+        id: pack
+        if: inputs.save-warmpack
+        env:
+          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+          PROJECT_DIR: project/${{ inputs.project-path }}
+        run: |
+          name="$(bash .mc-build-hub/tools/ci/warmpack-ci.sh name)"
+          echo "name=$name" >>"$GITHUB_OUTPUT"
+          bash .mc-build-hub/tools/ci/warmpack-ci.sh save
+          echo "### 📦 预热包：\`$name\`" >>"$GITHUB_STEP_SUMMARY"
+
+      - name: 上传预热构建日志
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: warm-cache-log
+          path: |
+            hub-build.log
+            hub-stats.json
+          retention-days: 7
+          if-no-files-found: ignore

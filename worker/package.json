@@ -1,0 +1,17 @@
+{
+  "name": "mc-build-hub-cache",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker: R2-backed Gradle remote build cache + cross-repo warm packs",
+  "scripts": {
+    "dev": "wrangler dev --local --port 8788",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "test:local": "node test/conformance.mjs http://127.0.0.1:8787",
+    "test:worker": "node test/conformance.mjs http://127.0.0.1:8788"
+  },
+  "devDependencies": {
+    "wrangler": "^4.44.0"
+  }
+}
