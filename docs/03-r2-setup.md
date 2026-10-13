@@ -16,22 +16,55 @@
 
 ## 1. 建桶与部署 Worker
 
+### 1a. API Token 需要哪些权限（**最容易卡住的一步**）
+
+Cloudflare 的 API Token 权限是**按资源**勾选的，只勾了 R2 是**部署不了 Worker** 的。实测：
+
+| 权限 | 用途 | 只勾 R2 时的表现 |
+|---|---|---|
+| Account → **Workers R2 Storage → Edit** | 建桶/读写对象 | ✅ 正常（`wrangler r2 bucket list` 通得过） |
+| Account → **Workers Scripts → Edit** | **部署 Worker 本体** | ❌ `PUT /workers/scripts/...` 返回 403 `No access to the specified resource` |
+| Account → Workers Scripts → Read | 列脚本（排查用） | ✅ 能列，但**不能部署**（这个最容易误判成"权限够了"） |
+
+所以：如果 `wrangler r2 bucket list` 成功、`wrangler deploy` 却报
+`A request to the Cloudflare API (/accounts/.../workers/scripts/.../secrets) failed. No access to the specified resource.`
+—— 那就是缺 **Workers Scripts: Edit**（最快是用 "Edit Cloudflare Workers" 模板新建一个 token）。
+
+### 1b. 两条命令（非交互，适合脚本化）
+
 ```bash
-# 一次性准备
-npm i -g wrangler            # 或 npx wrangler
-wrangler login
+export CLOUDFLARE_ACCOUNT_ID=<你的 account id>        # 就是 R2 endpoint 里那段 <account>.r2.cloudflarestorage.com
+export CLOUDFLARE_API_TOKEN=<有 Workers Scripts:Edit 的 API Token>
 
-# 建桶（名字与 worker/wrangler.toml 里一致）
-wrangler r2 bucket create mc-build-cache
+# 建桶（桶名必须与 worker/wrangler.toml 里的 bucket_name 一致）
+npx wrangler r2 bucket create buildcach
 
-# 部署缓存服务
-cd worker
-npm install
-wrangler secret put CACHE_TOKEN     # 输入形如：hub:<32位随机串>
-wrangler deploy
+# 部署缓存服务（先设密钥，再部署）
+cd worker && npm install
+printf '%s' 'hub:<32位随机串>' | npx wrangler secret put CACHE_TOKEN
+npx wrangler deploy
 ```
 
-部署完会得到一个地址，形如 `https://mc-build-hub-cache.<你的子域>.workers.dev`。
+部署完会打印 `https://mc-build-hub-cache.<你的子域>.workers.dev`。
+> 若提示 workers.dev 子域未启用：Cloudflare Dashboard → Workers → 设置里注册一个 `<名字>.workers.dev` 子域即可
+> （这是账号级一次性操作；也可以改用自定义域名 + `wrangler.toml` 里的 `routes`）。
+
+### 1c. 两个容易踩的坑（实测记录）
+
+1. **R2 的 S3 凭证与 Cloudflare API Token 是同一个 token 的两副面孔**：
+   在 Dashboard 创建 R2 API Token 时，它给出的 *Access Key ID* 就是该 API Token 的 **ID**，
+   *Secret Access Key* 是它的 **SHA256**。所以 `GET /user/tokens/verify` 返回的 `id`
+   会与你手里的 Access Key ID 一模一样 —— 这不是复制错了。
+2. **R2 的 S3 接口强制要求 `x-amz-content-sha256` 头**：用 `curl --aws-sigv4` 直接访问时，
+   不带这个头会得到 `400 InvalidRequest: Missing x-amz-content-sha256`（**不是**权限问题，别去查 token）。
+   GET/DELETE 传空串的 SHA256，PUT 传 body 的 SHA256：
+
+   ```bash
+   EMPTY=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+   curl -s --aws-sigv4 "aws:amz:auto:s3" --user "$KEY:$SECRET" \
+        -H "x-amz-content-sha256: $EMPTY" \
+        "https://<account>.r2.cloudflarestorage.com/<bucket>?list-type=2&max-keys=5"
+   ```
 
 ## 2. 配生命周期规则（**别跳过这步**）
 
