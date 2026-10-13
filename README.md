@@ -34,27 +34,31 @@
 
 ## 30 秒接入
 
+**推荐：一条命令**（自动识别工具链 → 生成 workflow → 配 secret → 告诉你能否直接吃现成的预热包）：
+
+```bash
+tools/onboard.sh --dir /path/to/your-mod-repo     # --dry-run 先看计划，--commit 一步到位
+```
+
 本仓库是**公开**仓库，所以消费方可以**零凭证**直接调它的 reusable workflow
 （公开仓库的 reusable workflow 可被任何仓库调用，含私有仓库 ✓）。
 **mod 项目本身零改动**：不改 `build.gradle` / `settings.gradle` / `gradle.properties`。
+手工等价流程（想自己控节奏时）见 [docs/05-onboarding.md](docs/05-onboarding.md)。
 
 ```bash
 # 1) 配 secret（仓库 Settings → Secrets and variables → Actions）
-MC_HUB_CACHE_URL    = https://<你的worker>.workers.dev/cache/
-MC_HUB_CACHE_USER   = hub
-MC_HUB_CACHE_PASS   = <你的令牌>
-MC_HUB_CC_KEY       = $(openssl rand -base64 16)     # 配置缓存跨 Runner 复用的开关，强烈建议
-
-# 二选一就够：
-#  (A) 只给 R2 密钥 —— 工作流会在作业内起代理直连 R2（推荐，无需 Workers 权限）
+#    方案 A（推荐，不需要 Workers 权限）：给 R2 密钥，工作流在作业内起代理直连
 MC_HUB_S3_ENDPOINT  = https://<account>.r2.cloudflarestorage.com
-MC_HUB_S3_BUCKET    = <桶名>
+MC_HUB_S3_BUCKET    = buildcach
 MC_HUB_S3_KEY_ID    = <R2 Access Key ID>
 MC_HUB_S3_SECRET    = <R2 Secret Access Key>
-#  (B) 或者给出一个现成的缓存端点（Cloudflare Worker / 自托管节点）
+MC_HUB_CACHE_USER   = hub
+MC_HUB_CACHE_PASS   = <与 hub 侧一致>
+MC_HUB_CC_KEY       = $(openssl rand -base64 16)     # 配置缓存跨 Runner 复用的开关
+#    方案 B：只给一个现成的缓存端点（Cloudflare Worker / 自托管节点）也行
 # MC_HUB_CACHE_URL  = https://<worker>.workers.dev/cache/
 
-# 2) 拷两个 workflow 到你的仓库
+# 2) 拷两个 workflow（或用 tools/onboard.sh 自动生成）
 cp examples/consumer/.github/workflows/{build,warm-cache}.yml <你的仓库>/.github/workflows/
 
 # 3) 先跑一次预热（把 NeoForm 产物喂进 R2），再正常 push
