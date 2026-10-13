@@ -61,7 +61,12 @@ fingerprint() {
   local props="$project/gradle.properties"
   if [[ -f "$props" ]]; then
     local vers
-    vers="$(grep -E '^[A-Za-z0-9_.]*(minecraft|neo|forge|loader|fabric|parchment|mappings|mc)[A-Za-z0-9_.]*=' "$props" 2>/dev/null | sort || true)"
+    # ⚠️ 必须排除 *_version_range：那是 neoforge.mods.toml 里的**兼容性声明**（例如 [1.21.1,1.21.2)），
+    #    跟 NeoForm/Gradle 产物毫无关系。带上它会把"本可共用同一个预热包"的项目硬拆成两个包
+    #    —— 实测：Arsenal_Graft 与 女仆变大 只差一个 loader_version_range，竟算出不同指纹。
+    #    取舍：指纹宁窄勿宽（喂错产物会引发莫名编译错误），但"声明性元数据"不该参与鉴别。
+    vers="$(grep -E '^[A-Za-z0-9_.]*(minecraft|neo|forge|loader|fabric|parchment|mappings|mc)[A-Za-z0-9_.]*=' "$props" 2>/dev/null \
+      | grep -vE '_version_range=' | grep -vE '^[A-Za-z0-9_.]*(mod|pack)_version=' | sort || true)"
     [[ -n "$vers" ]] && parts+=("$vers")
   fi
 
