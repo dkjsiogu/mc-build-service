@@ -100,15 +100,16 @@ gh workflow run warm-cache.yml && gh workflow run build.yml
 | 同一次提交重建（L1+L2） | 91.0s | 87.3s | stored | **1 命中** |
 | 真·冷启动（什么都不缓存） | ✗ 失败于反编译（338s 处） | — | — | — |
 
-**B. GitHub 托管 Runner（2 核）—— 真实 mod、真实运行、无任何缓存**
+**B. GitHub 托管 Runner（2 核）—— 真实 mod、真实 R2 桶，接 R2 前后对照**
 
-| 场景 | 墙钟 | 执行段 | 最大头 | 证据 |
-|---|---|---|---|---|
-| 真·冷启动（**全空**缓存，`assemble` 成功出 jar） | **281.4s**（整 job ~5min） | 237.5s | `:createMinecraftArtifacts` **212.1s** + `:compileJava` 24.1s | [evidence/03](evidence/03-hosted-runner-cold.md) |
+| 场景 | Gradle 构建 | 执行段 | `:createMinecraftArtifacts` | `:compileJava` | 整个 job | 证据 |
+|---|---|---|---|---|---|---|
+| 冷启动（无远程缓存） | 281.4s | 237.5s | **212.1s** | 24.1s | ~5min | [evidence/03](evidence/03-hosted-runner-cold.md) |
+| **接上 R2 之后** | **28s** | **13.3s** | **3.2s** | 7.7s（FROM-CACHE） | **~65s** | [evidence/04](evidence/04-r2-live.md) |
 
-> 托管 Runner 上发行版下载只要 **14.2s**（本机约 10 分钟）——所以本机那些"启动 58.6s"的数字不代表线上。
-> 按本地实测的反混淆加速比推算，配上 R2 预热包后线上温启动约 **70~100s**（核少，比本机 42.4s 慢一档）。
-> 该推算未经实测，配好 R2 后用同一分支再跑一次即可换成实测值。
+> 这就是最终答案：**托管 Runner 上 `assemble` 从 4 分 41 秒降到 28 秒**，整 job 65 秒。
+> 其中 19 秒花在从 R2 拉 540MB 预热包上，真正"构建"只占 29 秒。
+> 托管 Runner 的发行版下载只要 14.2s（本机约 10 分钟）——本机那些"启动 58.6s"不代表线上。
 
 
 **三条读数**（细节与边界见 [docs/04-benchmark.md](docs/04-benchmark.md)）：
@@ -179,7 +180,7 @@ tests/fixture/                        自检用最小 Gradle 工程
 |---|---|
 | init 脚本（并行/构建缓存强制、远程缓存接线、预检、告警） | ✅ 已在真实 NeoForge 工程上验证 |
 | 可复用构建/预热工作流 | ✅ actionlint 通过；已在 GitHub `ubuntu-latest` 上跑通自检（22/0） |
-| R2 缓存后端 | ✅ **已接通真实桶**：协议一致性 13/13；干净 home 写入 → 另一个干净 home **100% FROM-CACHE**（`docs/03`） |
+| R2 缓存后端 | ✅ **已接通真实桶**：协议一致性 13/13；**托管 Runner 实测 281.4s → 28s**（[evidence/04](evidence/04-r2-live.md)） |
 | 自托管缓存节点（无 Cloudflare 也能用） | ✅ 本地 + GitHub 端到端验证（冷写入 → 干净 home 全部命中） |
 | 预热包机制 | ✅ 打包/还原/排除规则验证通过（实测 1.4G / 22s 打包） |
 | 冷/温基准 | ✅ 6 场景矩阵完成，数据见上；真·冷启动失败现场见 `evidence/02` |
