@@ -60,6 +60,21 @@ jobs:
           validate-wrappers: true
           add-job-summary: always
 
+      - name: 解析缓存地址（有现成的就用现成的）
+        run: |
+          url="${{ secrets.MC_HUB_CACHE_URL }}"
+          if [ -n "$url" ]; then echo "MC_HUB_CACHE_URL=$url" >>"$GITHUB_ENV"; fi
+
+      - name: 启动 R2 直连代理（无现成地址 + 配了 MC_HUB_S3_* 时生效）
+        env:
+          MC_HUB_S3_ENDPOINT: ${{ secrets.MC_HUB_S3_ENDPOINT }}
+          MC_HUB_S3_BUCKET: ${{ secrets.MC_HUB_S3_BUCKET }}
+          MC_HUB_S3_KEY_ID: ${{ secrets.MC_HUB_S3_KEY_ID }}
+          MC_HUB_S3_SECRET: ${{ secrets.MC_HUB_S3_SECRET }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+        run: bash .mc-build-hub/tools/ci/cache-node.sh start
+
       - name: 装 init 脚本
         run: |
           mkdir -p "$GRADLE_USER_HOME/init.d"
@@ -68,7 +83,6 @@ jobs:
 
       - name: 恢复跨仓库预热包
         env:
-          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
           MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
           MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
           PROJECT_DIR: project
@@ -77,7 +91,6 @@ jobs:
       - name: 构建
         id: run
         env:
-          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
           MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
           MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
           MC_HUB_CACHE_PUSH: ${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
@@ -93,3 +106,7 @@ jobs:
           path: project/**/build/libs/*.jar
           retention-days: 14
           if-no-files-found: warn
+
+      - name: 停掉作业内缓存代理
+        if: always()
+        run: bash .mc-build-hub/tools/ci/cache-node.sh stop

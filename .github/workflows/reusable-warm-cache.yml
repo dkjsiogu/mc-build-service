@@ -60,6 +60,15 @@ on:
           caches/build-cache-1
           caches/keyrings
     secrets:
+      MC_HUB_S3_ENDPOINT:
+        description: R2/S3 端点（无 Worker 时，作业内起代理直连用）
+        required: false
+      MC_HUB_S3_BUCKET:
+        required: false
+      MC_HUB_S3_KEY_ID:
+        required: false
+      MC_HUB_S3_SECRET:
+        required: false
       MC_HUB_CACHE_URL:
         required: false
       MC_HUB_CACHE_USER:
@@ -124,6 +133,26 @@ jobs:
           path: .mc-build-hub
           token: ${{ secrets.MC_HUB_TOKEN || github.token }}
 
+      - name: 解析缓存地址（有现成的就用现成的）
+        run: |
+          url="${{ secrets.MC_HUB_CACHE_URL }}"
+          if [ -n "$url" ]; then
+            echo "MC_HUB_CACHE_URL=$url" >>"$GITHUB_ENV"
+            echo "使用现成缓存地址：$url"
+          else
+            echo "未提供现成缓存地址；若配置了 MC_HUB_S3_*，下一步会在作业内起 R2 直连代理"
+          fi
+
+      - name: 启动 R2 直连代理（无现成地址 + 配了 MC_HUB_S3_* 时生效）
+        env:
+          MC_HUB_S3_ENDPOINT: ${{ secrets.MC_HUB_S3_ENDPOINT }}
+          MC_HUB_S3_BUCKET: ${{ secrets.MC_HUB_S3_BUCKET }}
+          MC_HUB_S3_KEY_ID: ${{ secrets.MC_HUB_S3_KEY_ID }}
+          MC_HUB_S3_SECRET: ${{ secrets.MC_HUB_S3_SECRET }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+        run: bash .mc-build-hub/tools/ci/cache-node.sh start
+
       - name: 装 init 脚本
         run: |
           mkdir -p "$GRADLE_USER_HOME/init.d"
@@ -133,7 +162,6 @@ jobs:
       - name: 预热构建（同时把任务输出推进远程缓存）
         id: run
         env:
-          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
           MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
           MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
           MC_HUB_CACHE_PUSH: 'true'
@@ -146,7 +174,6 @@ jobs:
         id: pack
         if: inputs.save-warmpack
         env:
-          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
           MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
           MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
           PROJECT_DIR: project/${{ inputs.project-path }}
@@ -166,3 +193,7 @@ jobs:
             hub-stats.json
           retention-days: 7
           if-no-files-found: ignore
+
+      - name: 停掉作业内缓存代理
+        if: always()
+        run: bash .mc-build-hub/tools/ci/cache-node.sh stop

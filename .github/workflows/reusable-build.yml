@@ -104,6 +104,15 @@ on:
         default: 14
 
     secrets:
+      MC_HUB_S3_ENDPOINT:
+        description: R2/S3 端点（无 Worker 时，作业内起代理直连用）
+        required: false
+      MC_HUB_S3_BUCKET:
+        required: false
+      MC_HUB_S3_KEY_ID:
+        required: false
+      MC_HUB_S3_SECRET:
+        required: false
       MC_HUB_CACHE_URL:
         description: 远程构建缓存地址（形如 https://<worker>.workers.dev/cache/）
         required: false
@@ -182,6 +191,26 @@ jobs:
 
       # init.d 里按文件名字典序执行；setup-gradle 自己会注入
       # gradle-actions.build-result-capture.init.gradle，所以这里用 00- 前缀确保我们先跑。
+      - name: 解析缓存地址（有现成的就用现成的）
+        run: |
+          url="${{ secrets.MC_HUB_CACHE_URL }}"
+          if [ -n "$url" ]; then
+            echo "MC_HUB_CACHE_URL=$url" >>"$GITHUB_ENV"
+            echo "使用现成缓存地址：$url"
+          else
+            echo "未提供现成缓存地址；若配置了 MC_HUB_S3_*，下一步会在作业内起 R2 直连代理"
+          fi
+
+      - name: 启动 R2 直连代理（无现成地址 + 配了 MC_HUB_S3_* 时生效）
+        env:
+          MC_HUB_S3_ENDPOINT: ${{ secrets.MC_HUB_S3_ENDPOINT }}
+          MC_HUB_S3_BUCKET: ${{ secrets.MC_HUB_S3_BUCKET }}
+          MC_HUB_S3_KEY_ID: ${{ secrets.MC_HUB_S3_KEY_ID }}
+          MC_HUB_S3_SECRET: ${{ secrets.MC_HUB_S3_SECRET }}
+          MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
+          MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
+        run: bash .mc-build-hub/tools/ci/cache-node.sh start
+
       - name: 装 init 脚本
         run: |
           mkdir -p "$GRADLE_USER_HOME/init.d"
@@ -192,7 +221,6 @@ jobs:
       - name: 恢复跨仓库预热包（NeoForm/依赖快照）
         if: inputs.warmpack != 'off'
         env:
-          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
           MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
           MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
           PROJECT_DIR: project/${{ inputs.project-path }}
@@ -202,7 +230,6 @@ jobs:
       - name: 构建
         id: run
         env:
-          MC_HUB_CACHE_URL: ${{ secrets.MC_HUB_CACHE_URL }}
           MC_HUB_CACHE_USER: ${{ secrets.MC_HUB_CACHE_USER }}
           MC_HUB_CACHE_PASS: ${{ secrets.MC_HUB_CACHE_PASS }}
           MC_HUB_CACHE_PUSH: ${{ inputs.remote-cache-push != 'auto' && inputs.remote-cache-push || (github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name != 'pull_request') }}
@@ -231,3 +258,7 @@ jobs:
           path: project/${{ inputs.artifact-path }}
           retention-days: ${{ inputs.artifact-retention-days }}
           if-no-files-found: warn
+
+      - name: 停掉作业内缓存代理
+        if: always()
+        run: bash .mc-build-hub/tools/ci/cache-node.sh stop
