@@ -1,0 +1,98 @@
+
+Welcome to Gradle 9.2.0!
+
+Here are the highlights of this release:
+ - Windows ARM support
+ - Improved publishing APIs
+ - Better guidance for dependency verification failures
+
+For more details see https://docs.gradle.org/9.2.0/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Calculating task graph as no cached configuration is available for tasks: assemble
+[mc-build-hub] 远程构建缓存已接线：http://127.0.0.1:8787/cache/（push=false，匿名）
+[mc-build-hub] 配置 hub=0.2.0 gradle=9.2.0 java=21.0.10 home=/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s2 parallel=true caching=true cc=true workers=16 remote=http://127.0.0.1:8787/cache/ push=false
+> Task :jarJar NO-SOURCE
+> Task :generateModMetadata
+> Task :processResources
+
+> Task :createMinecraftArtifacts
+Loaded 116 artifacts from /home/dkjsiogu/文档/project/mc-build-service/.bench/work/s2/Arsenal_Graft/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+*** Started working on downloadJson
+  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json
+  ↓ https://piston-meta.mojang.com/v1/packages/cedfc3b6dcbca34e2b478d498bf1d56a8fa2f404/1.21.1.json
+ ✓ Completed downloadJson in 3.88s
+*** Started working on downloadServer
+*** Started working on downloadClient
+*** Started working on downloadClientMappings
+  ↓ https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar
+  ↓ https://piston-data.mojang.com/v1/objects/30c73b1c5da787909b2f73340419fdf13b9def88/client.jar
+  ↓ https://piston-data.mojang.com/v1/objects/2244b6f072256667bcd9a73df124d6c58de77992/client.txt
+ ✓ Completed downloadClientMappings in 12.31s
+*** Started working on mergeMappings
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ ✓ Completed mergeMappings in 1.04s
+ ✓ Completed downloadClient in 16.11s
+*** Started working on stripClient
+ ✓ Completed stripClient in 1.34s
+ ✓ Completed downloadServer in 25.26s
+*** Started working on extractServer
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ ✓ Completed extractServer in 0.20s
+*** Started working on stripServer
+ ✓ Completed stripServer in 0.90s
+*** Started working on merge
+ ↳ Running external tool net.neoforged:mergetool:2.0.3:fatjar
+ ✓ Completed merge in 1.79s
+*** Started working on rename
+ ↳ Running external tool net.neoforged:AutoRenamingTool:2.0.3:all
+ ✓ Completed rename in 2.62s
+*** Started working on decompile
+ ↳ Running external tool org.vineflower:vineflower:1.10.1
+ ✓ Completed decompile in 20.78s
+*** Started working on inject
+ ✓ Completed inject in 0.82s
+*** Started working on patch
+ ↳ Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ ✓ Completed patch in 1.32s
+*** Started working on applyNeoforgePatches
+ ↳ Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ ✓ Completed applyNeoforgePatches in 1.14s
+*** Started working on transformSources
+ ↳ Running external tool net.neoforged.jst:jst-cli-bundle:1.0.74
+ ✓ Completed transformSources in 5.08s
+*** Started working on recompile
+ 96 items on the compile classpath
+ 0 items on the sourcepath
+*** Started working on sourcesWithNeoForge
+ Compiling 5364 source files
+ ✓ Completed sourcesWithNeoForge in 1.29s
+Copied 0 resource files
+ ✓ Completed recompile in 16.67s
+*** Started working on compiledWithNeoForge
+ ✓ Completed compiledWithNeoForge in 1.98s
+*** Started working on sourcesAndCompiledWithNeoForge
+ ✓ Completed sourcesAndCompiledWithNeoForge in 1.82s
+Total runtime: 84.79s
+
+
+> Task :compileJava FROM-CACHE
+> Task :classes
+> Task :jar
+> Task :assemble
+
+[Incubating] Problems report is available at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/s2/Arsenal_Graft/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 1m 30s
+5 actionable tasks: 4 executed, 1 from cache
+Configuration cache entry stored.
+
+See the profiling report at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/s2/Arsenal_Graft/build/reports/profile/profile-2026-10-13-03-17-53.html
+A fine-grained performance profile is available: use the --scan option.

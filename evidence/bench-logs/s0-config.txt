@@ -1,0 +1,1 @@
+[mc-build-hub] hub=0.2.0 gradle=9.2.0 java=21.0.10 home=/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s0 parallel=true caching=true cc=true workers=16 remote=none push=false

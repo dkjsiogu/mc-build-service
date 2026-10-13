@@ -1,0 +1,37 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Calculating task graph as no cached configuration is available for tasks: help
+[mc-build-hub] 远程构建缓存接线失败，已降级为仅本地缓存：Could not set unknown property 'isPush' for object of type org.gradle.caching.http.HttpBuildCache.
+[mc-build-hub] 配置 hub=0.2.0 gradle=9.2.0 java=21.0.10 home=/home/dkjsiogu/文档/project/mc-build-service/.bench/home-cold parallel=true caching=true cc=true workers=16 remote=http://127.0.0.1:8787/cache/ push=true
+
+> Task :help
+
+Welcome to Gradle 9.2.0.
+
+To run a build, run gradlew <task> ...
+
+To see a list of available tasks, run gradlew tasks
+
+To see more detail about a task, run gradlew help --task <task>
+
+To see a list of command-line options, run gradlew --help
+
+For more detail on using Gradle, see https://docs.gradle.org/9.2.0/userguide/command_line_interface.html
+
+For troubleshooting, visit https://help.gradle.org
+
+[Incubating] Problems report is available at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/Arsenal_Graft/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 5s
+1 actionable task: 1 executed
+Configuration cache entry stored.
+
+real	0m5.569s
+user	0m19.649s
+sys	0m0.962s

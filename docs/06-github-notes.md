@@ -21,6 +21,10 @@
 - 附带修正一个常见误用：`secrets: inherit` 按官方文档仅限"同组织/同企业"，
   跨仓库调用时不要指望它。
 
+**现状**：本仓库已于 **2026-10-13 改为公开仓库** ⇒ 路线 1 生效，消费方直接
+`uses: dkjsiogu/mc-build-service/.github/workflows/reusable-build.yml@v1`，无需任何 PAT。
+路线 2 依然保留给"必须私有"的场景。
+
 **对架构的两个后果**（本仓库两个消费者模板正好对应这两条路）：
 
 1. **把黑盒子做成公开仓库** → `uses: .../reusable-build.yml@v1` 直接可用，

@@ -1,0 +1,108 @@
+Downloading https://services.gradle.org/distributions/gradle-9.2.0-bin.zip
+............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
+
+Welcome to Gradle 9.2.0!
+
+Here are the highlights of this release:
+ - Windows ARM support
+ - Improved publishing APIs
+ - Better guidance for dependency verification failures
+
+For more details see https://docs.gradle.org/9.2.0/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Calculating task graph as no cached configuration is available for tasks: assemble
+[mc-build-hub] 远程构建缓存已接线：http://127.0.0.1:8787/cache/（push=true，匿名）
+[mc-build-hub] 配置 hub=0.2.0 gradle=9.2.0 java=21.0.10 home=/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s1 parallel=true caching=true cc=true workers=16 remote=http://127.0.0.1:8787/cache/ push=true
+> Task :jarJar NO-SOURCE
+> Task :generateModMetadata
+> Task :processResources
+
+> Task :createMinecraftArtifacts
+Loaded 116 artifacts from /home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+*** Started working on downloadJson
+ ✓ Completed downloadJson in 0.01s
+*** Started working on downloadClient
+*** Started working on downloadClientMappings
+*** Started working on downloadServer
+ ✓ Completed downloadServer in 0.02s
+ ✓ Completed downloadClient in 0.02s
+ ✓ Completed downloadClientMappings in 0.02s
+*** Started working on mergeMappings
+ ♻ Used cache of mergeMappings in 0.00s
+*** Started working on stripClient
+ ♻ Used cache of stripClient in 0.00s
+*** Started working on extractServer
+ ♻ Used cache of extractServer in 0.00s
+*** Started working on stripServer
+ ♻ Used cache of stripServer in 0.00s
+*** Started working on merge
+ ♻ Used cache of merge in 0.00s
+*** Started working on rename
+ ♻ Used cache of rename in 0.00s
+*** Started working on decompile
+ ♻ Used cache of decompile in 0.00s
+*** Started working on inject
+ ♻ Used cache of inject in 0.00s
+*** Started working on patch
+ ↳ Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ ✓ Completed patch in 1.32s
+*** Started working on applyNeoforgePatches
+ ↳ Running external tool io.codechicken:DiffPatch:2.0.0.36:all
+ ✓ Completed applyNeoforgePatches in 1.15s
+*** Started working on transformSources
+ ↳ Running external tool net.neoforged.jst:jst-cli-bundle:1.0.74
+ ✓ Completed transformSources in 7.32s
+*** Started working on recompile
+ 96 items on the compile classpath
+ 0 items on the sourcepath
+*** Started working on sourcesWithNeoForge
+ Compiling 5364 source files
+ ✓ Completed sourcesWithNeoForge in 1.24s
+Copied 0 resource files
+ ✓ Completed recompile in 16.46s
+*** Started working on compiledWithNeoForge
+ ✓ Completed compiledWithNeoForge in 1.97s
+*** Started working on sourcesAndCompiledWithNeoForge
+ ✓ Completed sourcesAndCompiledWithNeoForge in 1.82s
+Total runtime: 30.56s
+
+
+> Task :compileJava
+/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft/src/main/java/com/arsenalgraft/energy/ArcaneEnergyAttributes.java:13: 警告: [removal] EventBusSubscriber 中的 bus() 已过时, 且标记为待删除
+@EventBusSubscriber(modid = ArsenalGraft.MODID, bus = EventBusSubscriber.Bus.MOD)
+                                                ^
+/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft/src/main/java/com/arsenalgraft/energy/ArcaneEnergyAttributes.java:13: 警告: [removal] EventBusSubscriber 中的 Bus 已过时, 且标记为待删除
+@EventBusSubscriber(modid = ArsenalGraft.MODID, bus = EventBusSubscriber.Bus.MOD)
+                                                                        ^
+/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft/src/main/java/com/arsenalgraft/energy/AetherPhaseEnergyAttributes.java:12: 警告: [removal] EventBusSubscriber 中的 bus() 已过时, 且标记为待删除
+@EventBusSubscriber(modid = ArsenalGraft.MODID, bus = EventBusSubscriber.Bus.MOD)
+                                                ^
+/home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft/src/main/java/com/arsenalgraft/energy/AetherPhaseEnergyAttributes.java:12: 警告: [removal] EventBusSubscriber 中的 Bus 已过时, 且标记为待删除
+@EventBusSubscriber(modid = ArsenalGraft.MODID, bus = EventBusSubscriber.Bus.MOD)
+                                                                        ^
+注: 某些输入文件使用或覆盖了已过时的 API。
+注: 有关详细信息, 请使用 -Xlint:deprecation 重新编译。
+注: /home/dkjsiogu/文档/project/mc-build-service/.bench/work/s1/Arsenal_Graft/src/main/java/com/arsenalgraft/integration/spell/SpellDamageAmplifier.java使用了未经检查或不安全的操作。
+注: 有关详细信息, 请使用 -Xlint:unchecked 重新编译。
+4 个警告
+
+> Task :classes
+> Task :jar
+> Task :assemble
+
+[Incubating] Problems report is available at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/s1/Arsenal_Graft/build/reports/problems/problems-report.html
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 4m 55s
+5 actionable tasks: 5 executed
+Configuration cache entry stored.
+
+See the profiling report at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/s1/Arsenal_Graft/build/reports/profile/profile-2026-10-13-03-12-15.html
+A fine-grained performance profile is available: use the --scan option.

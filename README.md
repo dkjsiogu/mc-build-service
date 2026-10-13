@@ -34,16 +34,9 @@
 
 ## 30 秒接入
 
-> ⚠️ **先看这条**：本仓库目前是**私有**仓库，而 GitHub **不允许**一个私有仓库调用另一个私有仓库的
-> reusable workflow（实测：运行 0 秒失败、jobs 数 0，见 [docs/06-github-notes.md](docs/06-github-notes.md) G1）。
-> 所以现在有两条路，二选一：
->
-> | 选择 | 消费方要做什么 | 模板 |
-> |---|---|---|
-> | **把黑盒子改成公开仓库**（推荐；里面没有任何密钥） | 两个 YAML + 3 个 secret，**无需 PAT** | [`examples/consumer/`](examples/consumer/) |
-> | **保持私有** | 两个 YAML + 4 个 secret（多一个 `MC_HUB_TOKEN` 读黑盒子） | [`examples/consumer-private-hub/`](examples/consumer-private-hub/) |
-
-在任何一条路上，**mod 项目本身都零改动**（不改 `build.gradle` / `settings.gradle` / `gradle.properties`）：
+本仓库是**公开**仓库，所以消费方可以**零凭证**直接调它的 reusable workflow
+（公开仓库的 reusable workflow 可被任何仓库调用，含私有仓库 ✓）。
+**mod 项目本身零改动**：不改 `build.gradle` / `settings.gradle` / `gradle.properties`。
 
 ```bash
 # 1) 配 secret（仓库 Settings → Secrets and variables → Actions）
@@ -51,14 +44,18 @@ MC_HUB_CACHE_URL    = https://<你的worker>.workers.dev/cache/
 MC_HUB_CACHE_USER   = hub
 MC_HUB_CACHE_PASS   = <你的令牌>
 MC_HUB_CC_KEY       = $(openssl rand -base64 16)     # 配置缓存跨 Runner 复用的开关，强烈建议
-MC_HUB_TOKEN        = <PAT>                          # 仅"黑盒子保持私有"这一条路需要
 
-# 2) 拷两个 workflow（公开路线用 examples/consumer，私有路线用 examples/consumer-private-hub）
+# 2) 拷两个 workflow 到你的仓库
 cp examples/consumer/.github/workflows/{build,warm-cache}.yml <你的仓库>/.github/workflows/
 
 # 3) 先跑一次预热（把 NeoForm 产物喂进 R2），再正常 push
 gh workflow run warm-cache.yml && gh workflow run build.yml
 ```
+
+> 想把黑盒子保持私有？那就走 [`examples/consumer-private-hub/`](examples/consumer-private-hub/)：
+> 自己检出黑盒子（用 PAT）再跑它的脚本。**为什么必须多这一步**：
+> GitHub 不允许一个私有仓库调用另一个私有仓库的 reusable workflow —— 实测运行 0 秒失败、jobs 数 0，
+> 而同仓库调用 8 秒成功（对照实验见 [docs/06-github-notes.md](docs/06-github-notes.md) G1）。
 
 
 细化的接入顺序与排错清单见 **[docs/05-onboarding.md](docs/05-onboarding.md)**。
@@ -164,7 +161,7 @@ tests/fixture/                        自检用最小 Gradle 工程
 | 自托管缓存节点（无 Cloudflare 也能用） | ✅ 本地 + GitHub 端到端验证（冷写入 → 干净 home 全部命中） |
 | 预热包机制 | ✅ 打包/还原/排除规则验证通过（实测 1.4G / 22s 打包） |
 | 冷/温基准 | ✅ 6 场景矩阵完成，数据见上；真·冷启动失败现场见 `evidence/02` |
-| **仓库可见性** | ⚠️ 目前私有 ⇒ 消费方需走 `examples/consumer-private-hub/`；改成公开则可用 `uses:` 直连（G1） |
+| **仓库可见性** | ✅ 已公开（2026-10-13）⇒ 消费方 `uses: dkjsiogu/mc-build-service/.github/workflows/reusable-build.yml@v1` 零凭证直连；私有场景用 `examples/consumer-private-hub/` |
 | R2 凭证 | ⏳ 待你在 Cloudflare 侧建桶后填 secret（"到时候再配置"） |
 
 ## 许可

@@ -1,0 +1,112 @@
+Downloading https://services.gradle.org/distributions/gradle-9.2.0-bin.zip
+............10%.............20%.............30%.............40%.............50%.............60%.............70%.............80%.............90%.............100%
+
+Welcome to Gradle 9.2.0!
+
+Here are the highlights of this release:
+ - Windows ARM support
+ - Improved publishing APIs
+ - Better guidance for dependency verification failures
+
+For more details see https://docs.gradle.org/9.2.0/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Calculating task graph as no cached configuration is available for tasks: assemble
+[mc-build-hub] 未设置 MC_HUB_CACHE_URL ⇒ 仅本地构建缓存（本地开发没问题；CI 上会白丢跨仓库复用的收益）
+[mc-build-hub] 配置 hub=0.2.0 gradle=9.2.0 java=21.0.10 home=/home/dkjsiogu/文档/project/mc-build-service/.bench/home-s0 parallel=true caching=true cc=true workers=16 remote=none push=false
+> Task :jarJar NO-SOURCE
+> Task :generateModMetadata
+> Task :processResources
+
+> Task :createMinecraftArtifacts
+Loaded 116 artifacts from /home/dkjsiogu/文档/project/mc-build-service/.bench/work/s0/Arsenal_Graft/build/tmp/createMinecraftArtifacts/nfrt_artifact_manifest.properties
+*** Started working on downloadJson
+  ↓ https://launchermeta.mojang.com/mc/game/version_manifest_v2.json
+  ↓ https://piston-meta.mojang.com/v1/packages/cedfc3b6dcbca34e2b478d498bf1d56a8fa2f404/1.21.1.json
+ ✓ Completed downloadJson in 3.67s
+*** Started working on downloadClientMappings
+*** Started working on downloadClient
+*** Started working on downloadServer
+  ↓ https://piston-data.mojang.com/v1/objects/2244b6f072256667bcd9a73df124d6c58de77992/client.txt
+  ↓ https://piston-data.mojang.com/v1/objects/30c73b1c5da787909b2f73340419fdf13b9def88/client.jar
+  ↓ https://piston-data.mojang.com/v1/objects/59353fb40c36d304f2035d51e7d6e6baa98dc05c/server.jar
+ ✓ Completed downloadClientMappings in 6.11s
+*** Started working on mergeMappings
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ ✓ Completed mergeMappings in 1.05s
+ ✓ Completed downloadClient in 21.75s
+*** Started working on stripClient
+ ✓ Completed stripClient in 1.35s
+ ✓ Completed downloadServer in 34.29s
+*** Started working on extractServer
+ ↳ Running external tool net.neoforged.installertools:installertools:2.1.2:fatjar
+ ✓ Completed extractServer in 0.21s
+*** Started working on stripServer
+ ✓ Completed stripServer in 0.90s
+*** Started working on merge
+ ↳ Running external tool net.neoforged:mergetool:2.0.3:fatjar
+ ✓ Completed merge in 1.86s
+*** Started working on rename
+ ↳ Running external tool net.neoforged:AutoRenamingTool:2.0.3:all
+ ✓ Completed rename in 2.71s
+*** Started working on decompile
+ ↳ Running external tool org.vineflower:vineflower:1.10.1
+Last lines of /home/dkjsiogu/文档/project/mc-build-service/.bench/work/s0/Arsenal_Graft/build/tmp/neoformruntime/20261013-030234_decompile/console_output.txt:
+------------------------------------------------------------
+vel/storage/loot/providers/nbt/ContextNbtProvider
+WARN:  Inconsistent inner class entries for net/minecraft/world/level/storage/loot/providers/nbt/ContextNbtProvider$Getter!
+WARN:    net/minecraft/world/level/storage/loot/providers/nbt/ContextNbtProvider$Getter: Getter abstract static MEMBER of net/minecraft/world/level/storage/loot/providers/nbt/ContextNbtProvider
+WARN:    net/minecraft/world/level/storage/loot/providers/nbt/ContextNbtProvider: Getter private abstract static MEMBER of net/minecraft/world/level/storage/loot/providers/nbt/ContextNbtProvider
+WARN:  Inconsistent inner class entries for net/minecraft/world/ticks/LevelTicks$PosAndContainerConsumer!
+WARN:    net/minecraft/world/ticks/LevelTicks$PosAndContainerConsumer: PosAndContainerConsumer abstract static MEMBER of net/minecraft/world/ticks/LevelTicks
+WARN:    net/minecraft/world/ticks/LevelTicks: PosAndContainerConsumer private abstract static MEMBER of net/minecraft/world/ticks/LevelTicks
+WARN:  net/minecraft/client/resources/model/BlockStateModelLoader.{net/minecraft/client/resources/model/BlockStateModelLoader: lambda$loadBlockStateDefinitions$10} processed twice
+WARN:  net/minecraft/client/resources/model/BlockStateModelLoader.{net/minecraft/client/resources/model/BlockStateModelLoader: lambda$loadBlockStateDefinitions$11} processed twice
+WARN:  net/minecraft/client/resources/model/BlockStateModelLoader.{net/minecraft/client/resources/model/BlockStateModelLoader: lambda$loadBlockStateDefinitions$10} processed twice
+WARN:  net/minecraft/client/resources/model/BlockStateModelLoader.{net/minecraft/client/resources/model/BlockStateModelLoader: lambda$loadBlockStateDefinitions$11} processed twice
+WARN:  net/minecraft/client/resources/model/BlockStateModelLoader.{net/minecraft/client/resources/model/BlockStateModelLoader: lambda$loadBlockStateDefinitions$10} processed twice
+WARN:  net/minecraft/client/resources/model/BlockStateModelLoader.{net/minecraft/client/resources/model/BlockStateModelLoader: lambda$loadBlockStateDefinitions$11} processed twice
+
+------------------------------------------------------------
+Total runtime: 51.96s
+
+net.neoforged.neoform.runtime.graph.NodeExecutionException: Node action for decompile failed
+	at net.neoforged.neoform.runtime.engine.NeoFormEngine.runNode(NeoFormEngine.java:560)
+	at net.neoforged.neoform.runtime.engine.NeoFormEngine.lambda$getWaitCondition$5(NeoFormEngine.java:506)
+	at java.base/java.util.concurrent.CompletableFuture$AsyncRun.run(CompletableFuture.java:1804)
+	at java.base/java.util.concurrent.ThreadPerTaskExecutor$TaskRunner.run(ThreadPerTaskExecutor.java:314)
+	at java.base/java.lang.VirtualThread.run(VirtualThread.java:329)
+Caused by: java.lang.RuntimeException: Failed to execute tool
+	at net.neoforged.neoform.runtime.actions.ExternalJavaToolAction.run(ExternalJavaToolAction.java:158)
+	at net.neoforged.neoform.runtime.engine.NeoFormEngine.runNode(NeoFormEngine.java:549)
+	... 4 more
+
+> Task :createMinecraftArtifacts FAILED
+
+[Incubating] Problems report is available at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/s0/Arsenal_Graft/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':createMinecraftArtifacts'.
+> Process 'command '/usr/lib/jvm/graalvm-jdk-21.0.10+8.1/bin/java'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to generate a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/9.2.0/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 5m 36s
+3 actionable tasks: 3 executed
+Configuration cache entry stored.
+
+See the profiling report at: file:///home/dkjsiogu/%E6%96%87%E6%A1%A3/project/mc-build-service/.bench/work/s0/Arsenal_Graft/build/reports/profile/profile-2026-10-13-02-58-20.html
+A fine-grained performance profile is available: use the --scan option.

@@ -66,7 +66,7 @@
 | 预热包一直 404 | 还没跑过 warm-cache；或指纹变了（换了 MC/loader/Gradle/JDK） | 跑一次 `reusable-warm-cache.yml` |
 | `jar` 每次都不命中 | Gradle 默认禁止打包类任务进缓存（F5） | 正常现象；大 jar 项目可自行 `outputs.cacheIf { true }` |
 | 拉预热包比重新下载还慢 | 包太大 / Runner 到 R2 的链路差 | `warmpack: off` 关掉，只吃 L1+L2 |
-| 私有黑盒子仓库调用报 404 | 跨私有仓库调用 reusable workflow 的可见性限制 | 见 `docs/06-github-notes.md`（含实测结论与两种绕法） |
+| 私有黑盒子仓库调用报 404 / 运行 0 秒失败 | 跨私有仓库调用 reusable workflow 的可见性限制 | 本仓库已公开 ⇒ 直连即可；若你的 hub 必须私有，走 `examples/consumer-private-hub/`（见 `docs/06` G1） |
 
 ## 多项目并行开发
 
