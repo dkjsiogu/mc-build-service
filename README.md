@@ -81,6 +81,8 @@ gh workflow run warm-cache.yml && gh workflow run build.yml
 
 `Arsenal_Graft`（NeoForge 1.21.1 / moddev 2.0.120 / Gradle 9.2.0 / JDK 21，任务 `assemble`）：
 
+**A. 本机 16 核 —— 冷/温对比（同一台机器，逐层剥离）**
+
 | 场景 | 墙钟 | 执行段 | 配置缓存 | 远程缓存 |
 |---|---|---|---|---|
 | **黑盒子完整形态**（L1 依赖 + L2 远程缓存 + L3 预热包） | **42.4s** | 37.8s | stored | 0 命中 |
@@ -88,6 +90,17 @@ gh workflow run warm-cache.yml && gh workflow run build.yml
 | 改一行代码、没有预热包（L1+L2） | 96.1s | 91.8s | stored | 0 命中 |
 | 同一次提交重建（L1+L2） | 91.0s | 87.3s | stored | **1 命中** |
 | 真·冷启动（什么都不缓存） | ✗ 失败于反编译（338s 处） | — | — | — |
+
+**B. GitHub 托管 Runner（2 核）—— 真实 mod、真实运行、无任何缓存**
+
+| 场景 | 墙钟 | 执行段 | 最大头 | 证据 |
+|---|---|---|---|---|
+| 真·冷启动（**全空**缓存，`assemble` 成功出 jar） | **281.4s**（整 job ~5min） | 237.5s | `:createMinecraftArtifacts` **212.1s** + `:compileJava` 24.1s | [evidence/03](evidence/03-hosted-runner-cold.md) |
+
+> 托管 Runner 上发行版下载只要 **14.2s**（本机约 10 分钟）——所以本机那些"启动 58.6s"的数字不代表线上。
+> 按本地实测的反混淆加速比推算，配上 R2 预热包后线上温启动约 **70~100s**（核少，比本机 42.4s 慢一档）。
+> 该推算未经实测，配好 R2 后用同一分支再跑一次即可换成实测值。
+
 
 **三条读数**（细节与边界见 [docs/04-benchmark.md](docs/04-benchmark.md)）：
 
