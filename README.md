@@ -45,6 +45,15 @@ MC_HUB_CACHE_USER   = hub
 MC_HUB_CACHE_PASS   = <你的令牌>
 MC_HUB_CC_KEY       = $(openssl rand -base64 16)     # 配置缓存跨 Runner 复用的开关，强烈建议
 
+# 二选一就够：
+#  (A) 只给 R2 密钥 —— 工作流会在作业内起代理直连 R2（推荐，无需 Workers 权限）
+MC_HUB_S3_ENDPOINT  = https://<account>.r2.cloudflarestorage.com
+MC_HUB_S3_BUCKET    = <桶名>
+MC_HUB_S3_KEY_ID    = <R2 Access Key ID>
+MC_HUB_S3_SECRET    = <R2 Secret Access Key>
+#  (B) 或者给出一个现成的缓存端点（Cloudflare Worker / 自托管节点）
+# MC_HUB_CACHE_URL  = https://<worker>.workers.dev/cache/
+
 # 2) 拷两个 workflow 到你的仓库
 cp examples/consumer/.github/workflows/{build,warm-cache}.yml <你的仓库>/.github/workflows/
 
@@ -67,7 +76,7 @@ gh workflow run warm-cache.yml && gh workflow run build.yml
 | 层 | 内容 | 谁负责 | 跨仓库？ |
 |---|---|---|---|
 | **L1 依赖层** | 依赖 jar、Gradle 发行版、transforms、build-logic | `gradle/actions/setup-gradle`（`cache-provider: basic`，MIT） | ❌ 同仓库 |
-| **L2 任务输出层** | `compileJava`、NeoForm 各阶段… 的产物 | `gradle/mc-build-hub.init.gradle` + Cloudflare Worker(R2) | ✅ |
+| **L2 任务输出层** | `compileJava`、NeoForm 各阶段… 的产物 | `gradle/mc-build-hub.init.gradle` + R2（Worker 或作业内直连代理） | ✅ |
 | **L3 分析产物层** | NeoForm 反混淆/重编译产物、依赖、发行版（实测 1.2G+） | `tools/warmpack.sh`（`warmpack-<指纹>.tar.zst`） | ✅ |
 
 外加两件"让收益可见、可核对"的事：
@@ -170,7 +179,7 @@ tests/fixture/                        自检用最小 Gradle 工程
 |---|---|
 | init 脚本（并行/构建缓存强制、远程缓存接线、预检、告警） | ✅ 已在真实 NeoForge 工程上验证 |
 | 可复用构建/预热工作流 | ✅ actionlint 通过；已在 GitHub `ubuntu-latest` 上跑通自检（22/0） |
-| Worker + R2 缓存节点 | ✅ 协议一致性测试通过；**R2 桶与密钥待配置**（`docs/03`） |
+| R2 缓存后端 | ✅ **已接通真实桶**：协议一致性 13/13；干净 home 写入 → 另一个干净 home **100% FROM-CACHE**（`docs/03`） |
 | 自托管缓存节点（无 Cloudflare 也能用） | ✅ 本地 + GitHub 端到端验证（冷写入 → 干净 home 全部命中） |
 | 预热包机制 | ✅ 打包/还原/排除规则验证通过（实测 1.4G / 22s 打包） |
 | 冷/温基准 | ✅ 6 场景矩阵完成，数据见上；真·冷启动失败现场见 `evidence/02` |

@@ -28,7 +28,7 @@
 | 层 | 解决的问题 | 不做的后果 | 谁负责 |
 |---|---|---|---|
 | L1 依赖层 | 依赖 jar、Gradle 发行版、transforms、build-logic | 冷 Runner 每次重下 ~90s（实测 F8） | `setup-gradle`（同仓库） |
-| L2 任务输出层 | `compileJava`、NeoForm 各阶段… 的产物复用 | 每次都全量重编译 | `mc-build-hub.init.gradle` + Worker/R2 |
+| L2 任务输出层 | `compileJava`、NeoForm 各阶段… 的产物复用 | 每次都全量重编译 | `mc-build-hub.init.gradle` + R2（Worker 或作业内代理） |
 | L3 分析产物层 | NeoForm 反混淆/重编译的**中间产物与结果**（1.2G 级） | 换仓库/换 Runner 就重跑几分钟反混淆 | `warmpack.sh` + R2 |
 
 **L1 与 L2/L3 的分工原则**：凡是 **GitHub 自己就能免费托管**的（同仓库、按 run 递进），交 L1；凡是**必须跨仓库**或**体积大但复用价值高**的，交 L2/L3（R2）。
